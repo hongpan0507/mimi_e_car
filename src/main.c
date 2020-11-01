@@ -30,28 +30,38 @@ int main(int argc, char **argv){
 	e_car_init();	//set up raspberry pi pin paramemeter
 
 	uint16_t SPI_addr = 0;
-	uint16_t write_data = 0;	//set DRV8343 PWM Mode to 3x PWM Mode
+	uint16_t write_data = 0;	
 	uint16_t read_data = 0;
+	uint16_t erase_mask = 0;
+	uint16_t write_mask = 0;
 
-	//set DRV8343 PWM Mode to 3x PWM Mode
+	//erase_mask is the same as the location in a register where the data is written to
+	//write_mask is the data to be written to a register
+	//xxx_mask convetion comes from naming convetion in TI drv8343.h
 	printf("set DRV8343 PWM Mode to 3x PWM Mode \n");
 	SPI_addr = SPI_REG_DRV_CTRL_1;
-	write_data = 0b00010000;	
-	DRV8343_SPI_write(&SPI_addr, &write_data, &read_data);
-	//DRV8343_SPI_read(&SPI_addr, &read_data);	//used for initial SPI communication testing
+	erase_mask = DRV8343S_PWM_MODE_MASK;
+	write_mask = DRV8343S_PWM_MODE_3x_MASK;
+	DRV83xx_reg_write(&SPI_addr, &erase_mask, &write_mask, &read_data);
 
 	//set all current sense amplifier gain = 5V/V
 	printf("set all current sense amplifier gain = 5V/V \n");
 	SPI_addr = SPI_REG_DRV_CTRL_12;
-	write_data = 0b00000000;	
-	DRV8343_SPI_write(&SPI_addr, &write_data, &read_data);
+	erase_mask = DRV8343S_CSA_GAIN_MASK;
+	write_mask = DRV8343S_CSA_GAIN_5;
+	DRV83xx_reg_write(&SPI_addr, &erase_mask, &write_mask, &read_data);
 
 	//clear all latched faults
-	printf("Clear Latched Faults\n");
+	/*
 	SPI_addr = SPI_REG_DRV_CTRL_1;
-	DRV8343_SPI_read(&SPI_addr, &read_data);	//Read register value before  modify
+	DRV8343_SPI_read(&SPI_addr, &read_data, true);	//Read register value before  modify
 	write_data = read_data | DRV8343S_CLR_FLT_MASK;
-	DRV8343_SPI_write(&SPI_addr, &write_data, &read_data);
+	DRV8343_SPI_write(&SPI_addr, &write_data, &read_data, true);
+	*/
+	SPI_addr = SPI_REG_DRV_CTRL_1;
+	erase_mask = DRV8343S_CLR_FLT_MASK;
+	write_mask = DRV8343S_CLR_FLT_MASK;
+	DRV83xx_reg_write(&SPI_addr, &erase_mask, &write_mask, &read_data);
 
 	int pwm_data = 0;
 	uint8_t Motor_DIR_val = 0;
@@ -68,16 +78,16 @@ int main(int argc, char **argv){
 			printf("DRV8343 fault flag is active; Check Fault Status and DIAG Status Register for more details \n");
 			printf("SPI_REG_FAULT_STAT \n");
 			SPI_addr = SPI_REG_FAULT_STAT;
-			DRV8343_SPI_read(&SPI_addr, &read_data);
+			DRV8343_SPI_read(&SPI_addr, &read_data, true);
 			printf("SPI_REG_DIAG_STAT_A \n");
 			SPI_addr = SPI_REG_DIAG_STAT_A;
-			DRV8343_SPI_read(&SPI_addr, &read_data);
+			DRV8343_SPI_read(&SPI_addr, &read_data, true);
 			printf("SPI_REG_DIAG_STAT_B \n");
 			SPI_addr = SPI_REG_DIAG_STAT_B;
-			DRV8343_SPI_read(&SPI_addr, &read_data);
+			DRV8343_SPI_read(&SPI_addr, &read_data, true);
 			printf("SPI_REG_DIAG_STAT_C \n");
 			SPI_addr = SPI_REG_DIAG_STAT_C;
-			DRV8343_SPI_read(&SPI_addr, &read_data);
+			DRV8343_SPI_read(&SPI_addr, &read_data, true);
 			return 0;
 		}
 	}

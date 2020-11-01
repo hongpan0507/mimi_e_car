@@ -3,9 +3,8 @@
 #include "comm.h"
 #include <bcm2835.h>
 
-
 int DRV8343_SPI_init(){
-	printf("Initialzing SPI communication for DRV8343 R/W...\n");
+	printf("Initialzing SPI communication...\n");
 	if(!bcm2835_spi_begin()){
 		printf("bcm2835_spi_begin failed. Are you running as root?\n");
 		return 1;
@@ -25,9 +24,7 @@ int DRV8343_SPI_init(){
 // A valid data word must be 16bit long, if it's less, DRV8343 ignores the command
 // DS Page52
 // SPI read function is verified to work by sending IC2, IC6, IC9 address; the default content was successfully read back
-int DRV8343_SPI_read(uint16_t *addr, uint16_t *read_data){
-	printf("--------DRV8343 SPI Read Only-------- \n");
-	printf("DRV8343_SPI_address: 0x%02X \n", *addr);
+int DRV8343_SPI_read(uint16_t *addr, uint16_t *read_data, bool verbose){
 	//the SPI address is using 16bit address; make sure 8th bit is 1 for reading; DS Page 52
 	*addr = *addr | DRV8343_SPI_read_addr_mask;
 	//printf("DRV8343_SPI_address after mod: 0x%02X \n", *addr);
@@ -47,18 +44,19 @@ int DRV8343_SPI_read(uint16_t *addr, uint16_t *read_data){
 	bcm2835_spi_transfernb((char*)addr, (char*)read_data, DRV8343_SPI_data_byte_len);	// SPI transaction
 	*read_data = *read_data >> 8;	//bcm2835_spi_transfernb() flips the MISO char order; found by using logic analyzer
 	*read_data = *read_data & DRV8343_SPI_read_data_mask;	//erase don't care bits
-	printf("DRV8343_SPI_Read: 0x%02X \n", *read_data);
-	printf("------------------------------------- \n");
+	if(verbose == true){	// good for debugging
+		printf("--------DRV8343 SPI Read Only-------- \n");
+		printf("DRV8343_SPI_address: 0x%02X \n", *addr);
+		printf("DRV8343_SPI_Read: 0x%02X \n", *read_data);
+		printf("------------------------------------- \n");
+	}
 }
 
 // A valid data word must be 16bit long, if it's less, DRV8343 ignores the command
 // DS Page52
 // most of the pointer type conversion is figured out by testing with SPI read; check SPI read for more documentation
-int DRV8343_SPI_write(uint16_t *addr, uint16_t *write_data, uint16_t *read_data){
-	printf("-----DRV8343 SPI Write and Read------ \n");
+int DRV8343_SPI_write(uint16_t *addr, uint16_t *write_data, uint16_t *read_data, bool verbose){
 	*addr = *addr & DRV8343_SPI_write_addr_mask;	// make sure the MSB is a write for DRV8343; DS page 52
-	printf("DRV8343_SPI_address: 0x%02X \n", *addr);
-	printf("DRV8343_SPI_write: 0x%02X \n", *write_data);
 
 	// this is the opposite of what DRV8343 wants, but it's neccessary to do it in this order because bcm2835_spi_trasnfernb() flips the char order
 	// DRV8343 wants address to go in first
@@ -67,7 +65,13 @@ int DRV8343_SPI_write(uint16_t *addr, uint16_t *write_data, uint16_t *read_data)
 	bcm2835_spi_transfernb((char*)write_data, (char*)read_data, DRV8343_SPI_data_byte_len);	// SPI transaction
 	*read_data = *read_data >> 8;	//bcm2835_spi_transfernb() flips the MISO char order; found by using logic analyzer
 	*read_data = *read_data & DRV8343_SPI_read_data_mask;	//erase don't care bits
-	printf("DRV8343_SPI_Read: 0x%02X \n", *read_data);
-	printf("------------------------------------- \n");
+
+	if(verbose == true){
+		printf("-----DRV8343 SPI Write and Read------ \n");
+		printf("DRV8343_SPI_address: 0x%02X \n", *addr);
+		printf("DRV8343_SPI_write: 0x%02X \n", *write_data);
+		printf("DRV8343_SPI_Read: 0x%02X \n", *read_data);
+		printf("------------------------------------- \n");
+	}
 	return 0;
 }

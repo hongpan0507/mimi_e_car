@@ -1,3 +1,5 @@
+#include <stdbool.h>
+
 // initialize communication protocal
 // provides communication functions
 // SPI, I2C
@@ -11,6 +13,6 @@
 #define DRV8343_SPI_data_byte_len		2
 
 int DRV8343_SPI_init();
-int DRV8343_SPI_read(uint16_t *addr, uint16_t *read_data);
-int DRV8343_SPI_write(uint16_t *addr, uint16_t *write_data, uint16_t *read_data);
+int DRV8343_SPI_read(uint16_t *addr, uint16_t *read_data, bool verbose);
+int DRV8343_SPI_write(uint16_t *addr, uint16_t *write_data, uint16_t *read_data, bool verbose);
 

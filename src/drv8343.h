@@ -90,6 +90,8 @@
 /* SPI_REG_04 : DRV_CTRL_REG_1_MASK */
 #define DRV8343S_CLR_FLT_MASK      (0x80)         /*  */
 #define DRV8343S_PWM_MODE_MASK     (0x70)         /*  */
+#define DRV8343S_PWM_MODE_6x_MASK  (0x00)         /*  */
+#define DRV8343S_PWM_MODE_3x_MASK  (0x10)         /*  */
 #define DRV8343S_PWM_MODE_1x_MASK  (0x20)         /*  */
 #define DRV8343S_BRIDGE_ABC_MODE_MASK  		(0x30)         /*  */
 #define DRV8343S_BRIDGE_AB_FET_C_MODE_MASK  (0x40)         /*  */
@@ -162,6 +164,11 @@
 #define DRV8343S_CSA_GAIN_C_MASK   (0x30)         /*  */
 #define DRV8343S_CSA_GAIN_B_MASK   (0x0C)         /*  */
 #define DRV8343S_CSA_GAIN_A_MASK   (0x03)         /*  */
+#define DRV8343S_CSA_GAIN_MASK 	   (0x3F)         /*  */
+#define DRV8343S_CSA_GAIN_5		   (0b000000)         /*  */
+#define DRV8343S_CSA_GAIN_10	   (0b010101)         /*  */
+#define DRV8343S_CSA_GAIN_20	   (0b101010)         /*  */
+#define DRV8343S_CSA_GAIN_40	   (0b111111)         /*  */
 
 /* SPI_REG_10 : DRV_CTRL_REG_13_MASK  */
 #define DRV8343S_CAL_MODE_MASK      (0x80)         /*  */
@@ -507,6 +514,7 @@ typedef struct DRV_Control_Obj
     uint16_t Register_Counter;
 } DRV_Control_Obj;
 
+void DRV83xx_reg_write(uint16_t *addr, uint16_t *erase_mask, uint16_t *write_mask, uint16_t *read_data);
 
 /* DRV8343S IdriveP_HS/LS Config Values in mA */
 #define DRV8343S_IdriveP_MODE0		1.5
