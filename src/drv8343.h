@@ -131,6 +131,8 @@
 /* SPI_REG_0A : DRV_CTRL_REG_7_MASK */
 #define DRV8343S_VDS_LVL_LB_MASK     (0xF0)         /*  */
 #define DRV8343S_VDS_LVL_HB_MASK     (0x0F)         /*  */
+#define DRV8343S_VDS_LVL_LB_1p88V     (0xF0)         /*  */
+#define DRV8343S_VDS_LVL_HB_1p88V     (0x0F)         /*  */
 
 /* SPI_REG_0B : DRV_CTRL_REG_8_MASK */
 #define DRV8343S_VDS_LVL_LC_MASK     (0xF0)         /*  */
@@ -139,7 +141,15 @@
 /* SPI_REG_0C : DRV_CTRL_REG_9_MASK  */
 #define DRV8343S_COAST_MASK       (0x80)         /*  */
 #define DRV8343S_TRETRY_MASK      (0x60)         /*  */
+#define DRV8343S_TRETRY_2ms       (0x00)         /*  */
+#define DRV8343S_TRETRY_4ms       (0x20)         /*  */
+#define DRV8343S_TRETRY_6ms       (0x40)         /*  */
+#define DRV8343S_TRETRY_8ms       (0x60)         /*  */
 #define DRV8343S_DEAD_TIME_MASK   (0x18)         /*  */
+#define DRV8343S_DEAD_TIME_500ns    (0x00)         /*  */
+#define DRV8343S_DEAD_TIME_1000ns   (0x08)         /*  */
+#define DRV8343S_DEAD_TIME_2000ns   (0x10)         /*  */
+#define DRV8343S_DEAD_TIME_4000ns   (0x18)         /*  */
 #define DRV8343S_TDRIVE_MAX_MASK  (0x04)         /*  */
 #define DRV8343S_TDRIVE_MASK	  (0x03)         /*  */
 
@@ -148,6 +158,7 @@
 #define DRV8343S_DIS_CPUV_MASK   (0x10)         /*  */
 #define DRV8343S_DIS_GDF_MASK    (0x08)         /*  */
 #define DRV8343S_OCP_DEG_MASK    (0x07)         /*  */
+#define DRV8343S_OCP_DEG_20p5us  (0x07)         /*  */
 
 /* SPI_REG_0E : DRV_CTRL_REG_11_MASK  */
 #define DRV8343S_RSVD_REG_10_MASK  (0x80)         /*  */
@@ -157,6 +168,10 @@
 #define DRV8343S_DIS_VDS_B_MASK    (0x08)         /*  */
 #define DRV8343S_DIS_VDS_A_MASK    (0x04)         /*  */
 #define DRV8343S_OCP_MODE_MASK     (0x03)         /*  */
+#define DRV8343S_OCP_MODE_OFF      (0x03)         /*  */
+#define DRV8343S_OCP_MODE_REPORT         (0x02)         /*  */
+#define DRV8343S_OCP_MODE_RETRY          (0x01)         /*  */
+#define DRV8343S_OCP_MODE_LATCHED_FLT    (0x00)         /*  */
 
 /* SPI_REG_0F : DRV_CTRL_REG_12_MASK  */
 #define DRV8343S_LS_REF_MASK       (0x80)         /*  */
@@ -182,6 +197,8 @@
 #define DRV8343S_DIS_SEN_C_MASK      (0x20)         /*  */
 #define DRV8343S_DIS_SEN_B_MASK      (0x10)         /*  */
 #define DRV8343S_DIS_SEN_A_MASK      (0x08)         /*  */
+#define DRV8343S_DIS_SEN_ABC_MASK      (0x38)         /*Use for disable/enable all three amplifier current sense  */
+#define DRV8343S_DIS_SEN_ABC      (0x38)         /*  */
 #define DRV8343S_CSA_CAL_C_MASK      (0x04)         /*  */
 #define DRV8343S_CSA_CAL_B_MASK      (0x02)         /*  */
 #define DRV8343S_CSA_CAL_A_MASK      (0x01)         /*  */
@@ -514,7 +531,9 @@ typedef struct DRV_Control_Obj
     uint16_t Register_Counter;
 } DRV_Control_Obj;
 
-void DRV83xx_reg_write(uint16_t *addr, uint16_t *erase_mask, uint16_t *write_mask, uint16_t *read_data);
+
+void DRV83xx_reg_write(uint16_t *addr, uint16_t *erase_mask, uint16_t *write_mask, uint16_t *read_data, uint16_t *write_data);
+void DRV83xx_FLT_CLR(uint16_t *SPI_addr, uint16_t *write_data, uint16_t *read_data);
 
 /* DRV8343S IdriveP_HS/LS Config Values in mA */
 #define DRV8343S_IdriveP_MODE0		1.5

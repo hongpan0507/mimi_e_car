@@ -1,6 +1,20 @@
+/*	***Notes***
+I2C
+	BCM2835 automatically pads '0' or '1' depending on I2C is a read('1') or write('0')
+	It pads the direction bit to the end of the slave address, consistant to I2C protocol
+	The most significant bit is shifted out first
+	May need to enable I2C in Rasberry Pi system if not enabled automatically
+	Need to do additional setting if trying to use I2C0; I2C1 is the default I2C channel
+
+SPI
+	Need to enable SPI manually; it is not enabled automatically by rasberry pi system
+ 
+ */
+
 #include <stdio.h> 
 #include <stdint.h>
 #include "comm.h"
+#include "tmp275.h"
 #include <bcm2835.h>
 
 int DRV8343_SPI_init(){
@@ -12,11 +26,13 @@ int DRV8343_SPI_init(){
 
 	//SPI requirement on DRV8343 Page 52
 	//DRV8343 max SPI frequency: 10MHz
+	int clk_div = BCM2835_SPI_CLOCK_DIVIDER_128;
 	bcm2835_spi_setBitOrder(BCM2835_SPI_BIT_ORDER_MSBFIRST); 
 	bcm2835_spi_setDataMode(BCM2835_SPI_MODE1);
-	bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_128);	//3.125MHz
+	bcm2835_spi_setClockDivider(clk_div);	//3.125MHz; found in the docu, not calculated
 	bcm2835_spi_chipSelect(BCM2835_SPI_CS0);
 	bcm2835_spi_setChipSelectPolarity(BCM2835_SPI_CS0, LOW);
+	printf("SPI Clock Speed: %02x MHz \n", clk_div);
 	printf("SPI communication setup completed\n"); 
 	return 0;
 }
@@ -45,11 +61,13 @@ int DRV8343_SPI_read(uint16_t *addr, uint16_t *read_data, bool verbose){
 	*read_data = *read_data >> 8;	//bcm2835_spi_transfernb() flips the MISO char order; found by using logic analyzer
 	*read_data = *read_data & DRV8343_SPI_read_data_mask;	//erase don't care bits
 	if(verbose == true){	// good for debugging
+		*addr &= ~DRV8343_SPI_read_addr_mask;	//use datasheet address for reporting
 		printf("--------DRV8343 SPI Read Only-------- \n");
 		printf("DRV8343_SPI_address: 0x%02X \n", *addr);
 		printf("DRV8343_SPI_Read: 0x%02X \n", *read_data);
 		printf("------------------------------------- \n");
 	}
+	return 0;
 }
 
 // A valid data word must be 16bit long, if it's less, DRV8343 ignores the command
@@ -75,3 +93,18 @@ int DRV8343_SPI_write(uint16_t *addr, uint16_t *write_data, uint16_t *read_data,
 	}
 	return 0;
 }
+
+int I2C_init(){
+	printf("Initialzing I2C communication...\n");
+	if(!bcm2835_i2c_begin()){
+		printf("bcm2835_spi_begin failed. Are you running as root?\n");
+		return 1;
+	}
+	int clk_div = BCM2835_I2C_CLOCK_DIVIDER_626;
+	bcm2835_i2c_setClockDivider(clk_div);		//400kHz; found in the docu, not calculated
+	bcm2835_i2c_setSlaveAddress(I2C1_tmp275_slave_addr);	//default slave address
+	printf("I2C Clock Speed: %02X kHz \n", clk_div);
+	printf("Default Slave Address is set to read TMP275 \n");
+	printf("Need to set slave address before data transfer \n");
+}
+

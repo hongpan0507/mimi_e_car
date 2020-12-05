@@ -5,9 +5,9 @@ CC=gcc
 CFLAGS=-I.
 
 all: output 
-output: main.o e_car_ctrl.o comm.o drv8343.o
-	$(CC) main.o -l bcm2835 e_car_ctrl.o comm.o drv8343.o -o output
-main.o: main.c e_car_ctrl.h comm.h drv8343.h
+output: main.o e_car_ctrl.o comm.o drv8343.o tmp275.o utilities.o
+	$(CC) main.o -l bcm2835 e_car_ctrl.o comm.o drv8343.o tmp275.o utilities.o -o output
+main.o: main.c e_car_ctrl.h comm.h drv8343.h tmp275.h utilities.h
 	$(CC)  -c main.c
 e_car_ctrl.o: e_car_ctrl.c e_car_ctrl.h
 	$(CC)  -c e_car_ctrl.c
@@ -15,6 +15,10 @@ comm.o: comm.c comm.h
 	$(CC)  -c comm.c
 drv8343.o: drv8343.c drv8343.h
 	$(CC)  -c drv8343.c 
+tmp275.o: tmp275.c tmp275.h
+	$(CC)  -c tmp275.c 
+utilities.o: utilities.c utilities.h
+	$(CC)  -c utilities.c 
 clean:
 	rm -rf *.o
 
