@@ -1,3 +1,7 @@
 # ignore all the object files
 *.o
 output
+# ignore all vim swap files
+*.swp
+*swo
+

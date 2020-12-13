@@ -106,5 +106,6 @@ int I2C_init(){
 	printf("I2C Clock Speed: %02X kHz \n", clk_div);
 	printf("Default Slave Address is set to read TMP275 \n");
 	printf("Need to set slave address before data transfer \n");
+	printf("I2C communication setup completed\n");
 }
 

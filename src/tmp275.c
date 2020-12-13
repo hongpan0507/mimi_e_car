@@ -4,15 +4,23 @@
 #include <stdio.h>
 
 void tmp275_init(){
+	printf("Initializing tmp275 configuration...");
 //	uint8_t tmp275_addr = I2C1_tmp275_slave_addr;
 //	bcm2835_i2c_setSlaveAddress(tmp275_addr);
 	bcm2835_i2c_setSlaveAddress(I2C1_tmp275_slave_addr);	//set I2C address to communicate with tmp275
 
 	char tmp275_ptr;
+	//set up converter precision
+	tmp275_ptr = tmp275_config_reg;
+	tmp275_write_ptr(&tmp275_ptr);	
+
 	//point to temperature register before reading temperature
 	tmp275_ptr = tmp275_tmp_data_reg;
 	tmp275_write_ptr(&tmp275_ptr);	
-	
+	printf("tmp275 temperature precision: \n");
+	printf("tmp275 upper temperature \n");
+	printf("tmp275 default pointer is set to read temperature\n");
+	printf("tmp275 setup completed\n");	
 }
 
 // Datasheet Page 8

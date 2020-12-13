@@ -15,6 +15,9 @@
 #define tmp275_tmp_high_reg			0b11
 #define tmp275_ptr_byte_len 		1			// use for BCM2835 I2C write operation
 
+// Configuration Register; DS page 16
+#define tmp275_config_shutdown_erase_mask	0x01
+
 void tmp275_init();
 float *tmp275_read_tmp(short *data);
 void tmp275_write_ptr(char *tmp275_ptr);
