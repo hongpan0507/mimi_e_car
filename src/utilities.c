@@ -1,6 +1,37 @@
 #include "utilities.h"
 #include <stdio.h>
 
+void print_char_array(char* txt, int txt_len){
+//	printf("size of array: %d \n", sizeof(txt));
+//	printf("size of array element: %d \n", sizeof(txt[0]));
+	for(int i=0; i<txt_len; i++){
+		//printf("%c", txt[i]);	// print as char
+		printf("%d", (short)txt[i]);	// print as integer
+	}
+	printf("\n");
+}
+
+// take in short (2 byte long) for now
+// for other data type, change *data from short to desired data type
+void print_as_bin(short *data){
+	short mask = 1;	// use for erasing all bits except LSB
+	short bin = 0;
+	//printf("bit size: %d \n", sizeof(*data)*8);
+	for(int i=0; i<sizeof(*data)*8; i++){ // 1 byte = 8 bits
+		//printf("value of i: %d \n", i);
+		//print MSB first
+		//convert from byte size to bit size
+		//shift bits from left to the LSB and print
+		bin = (*data >> (sizeof(*data)*8 - 1 - i)) & mask;
+		//printf("%d\n", bin);
+		printf("%d", bin);
+		if((i+1)%4 == 0){
+			printf(" ");	// print empty space for every 4 bits
+		}
+	}
+	printf("\n");
+}
+
 // convert signed 12 bit number stored in 16 bit long data to a negative number
 int signed_12bit_to_signed_16bit(short *num_16bit){
 	if (sizeof(*num_16bit)==sizeof(short)){
@@ -26,3 +57,14 @@ int signed_12bit_to_signed_16bit(short *num_16bit){
 	return 0;
 }
 
+float *C_to_F(float *temp_C){
+	static float temp_F = 0;
+	temp_F = *temp_C * 9/5 + 32;
+	return &temp_F;
+}
+
+float *F_to_C(float *temp_F){
+	static float temp_C = 0;
+	temp_C = (*temp_F - 32) * 5/9;
+	return &temp_C;
+}

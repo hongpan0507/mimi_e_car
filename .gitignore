@@ -3,5 +3,7 @@
 output
 # ignore all vim swap files
 *.swp
-*swo
+*.swo
+*.swn
+
 

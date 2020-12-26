@@ -25,8 +25,8 @@ int main(int argc, char **argv){
 	// e_car_inint() needs to be placed after DRV8343_SPI_init();
 	DRV8343_SPI_init();
 	I2C_init();
-	e_car_init();	//set up raspberry pi pin paramemeter
 	tmp275_init();	//temperature sensor init
+	e_car_init();	//set up raspberry pi pin paramemeter
 	bcm2835_pwm_set_data(PWM_CHANNEL0, 2);
 	//erase_mask is the same as the location in a register where the data is written to
 	//write_mask is the data to be written to a register
@@ -39,10 +39,9 @@ int main(int argc, char **argv){
 	uint16_t write_mask = 0;
 
 	short tmp_DAC_data = 0; 
-	float *PCB_tmp;		// PCB temperature data read from TMP275 closest to the MOSFETs
+	float *PCB_tmp_C;		// PCB temperature data read from TMP275 closest to the MOSFETs
+	float *PCB_tmp_F;		// PCB temperature data read from TMP275 closest to the MOSFETs
 
-	PCB_tmp = tmp275_read_tmp(&tmp_DAC_data);
-	printf("PCB Temperature = %.1fC \n", *PCB_tmp);
 	//clear all latched faults
 	DRV83xx_FLT_CLR(&SPI_addr, &write_data, &read_data);
 
@@ -119,6 +118,13 @@ int main(int argc, char **argv){
 		DRV8343_FLT_val = bcm2835_gpio_lev(DRV8343_FLT);	//read DRV8343 general Fault status
 		bcm2835_pwm_set_data(PWM_CHANNEL0, 512);
 		delay(PWM_delay);	//delay in ms
+
+		PCB_tmp_C = tmp275_read_tmp(&tmp_DAC_data);
+		PCB_tmp_F = C_to_F(PCB_tmp_C);
+		printf("PCB Temperature = %.1fC ", *PCB_tmp_C);
+		printf("(%.1fF) \n", *PCB_tmp_F);
+		
+		delay(1000);
 
 		if(DRV8343_FLT_val == 0){	//active low
 			printf("DRV8343 fault flag is active; Check Fault Status and DIAG Status Register for more details \n");
