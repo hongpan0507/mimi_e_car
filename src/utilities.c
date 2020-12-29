@@ -57,14 +57,10 @@ int signed_12bit_to_signed_16bit(short *num_16bit){
 	return 0;
 }
 
-float *C_to_F(float *temp_C){
-	static float temp_F = 0;
-	temp_F = *temp_C * 9/5 + 32;
-	return &temp_F;
+void *C_to_F(float *temp_C, float *temp_F){
+	*temp_F = *temp_C * 9/5 + 32;
 }
 
-float *F_to_C(float *temp_F){
-	static float temp_C = 0;
-	temp_C = (*temp_F - 32) * 5/9;
-	return &temp_C;
+void *F_to_C(float *temp_C, float *temp_F){
+	*temp_C = (*temp_F - 32) * 5/9;
 }

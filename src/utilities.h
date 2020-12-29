@@ -19,5 +19,5 @@
 void print_char_array(char* txt, int txt_len);
 void print_as_bin(short *data);
 int signed_12bit_to_signed_16bit(short *num_16bit);
-float *C_to_F(float *temp_C);
-float *F_to_C(float *temp_F);
+void *C_to_F(float *temp_C, float *temp_F);
+void *F_to_C(float *temp_C, float *temp_F);

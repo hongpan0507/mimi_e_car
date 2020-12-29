@@ -5,6 +5,7 @@
 #include "drv8343.h"	// extract from DRV8343 eval board software program
 #include "tmp275.h"
 #include "utilities.h"
+#include <math.h>
 
 /* Notes:
    1. GPIO 13 cannot used as input for reading; bad pin? or bcm2835 library problem?
@@ -27,20 +28,21 @@ int main(int argc, char **argv){
 	I2C_init();
 	tmp275_init();	//temperature sensor init
 	e_car_init();	//set up raspberry pi pin paramemeter
-	bcm2835_pwm_set_data(PWM_CHANNEL0, 2);
+
 	//erase_mask is the same as the location in a register where the data is written to
 	//write_mask is the data to be written to a register
 	//xxx_mask convetion comes from naming convetion in TI drv8343.h
-
 	uint16_t SPI_addr = 0;
 	uint16_t write_data = 0;	
 	uint16_t read_data = 0;
 	uint16_t erase_mask = 0;
 	uint16_t write_mask = 0;
 
+	short PCB_tmp_warm_high_limit = 35;	//if PCB temperature goes over this number; turn on the fan
+	short PCB_tmp_warm_low_limit = 32;	//if PCB temperature goes over this number; turn on the fan
 	short tmp_DAC_data = 0; 
-	float *PCB_tmp_C;		// PCB temperature data read from TMP275 closest to the MOSFETs
-	float *PCB_tmp_F;		// PCB temperature data read from TMP275 closest to the MOSFETs
+	float PCB_tmp_C = 0;		// PCB temperature data read from TMP275 closest to the MOSFETs
+	float PCB_tmp_F = 0;		// PCB temperature data read from TMP275 closest to the MOSFETs
 
 	//clear all latched faults
 	DRV83xx_FLT_CLR(&SPI_addr, &write_data, &read_data);
@@ -106,6 +108,11 @@ int main(int argc, char **argv){
 	uint8_t PEDAL_val = 0;
 	uint8_t DRV8343_FLT_val = 0;
 	int RETRY_count = 0;
+	uint8_t over_tmp_FLT = 0;
+	
+	uint32_t loop_count = 0;		// for reporting temperature
+	uint32_t report_count = 0;		// for reporting temperature
+	report_count = pow(2, 22);		// report about once every seconds 
 	
 	//Only use for debugging when stop and start motor control is required
 	char c;
@@ -114,18 +121,16 @@ int main(int argc, char **argv){
 	printf("Character entered: ");
 	putchar(c);
 
+	motor_coast(coast_OFF);
 	while(1){
+		//Normal Motor control
+		Motor_DIR_val = bcm2835_gpio_lev(Motor_DIR_PIN_IN);	//reading switch state
+
 		DRV8343_FLT_val = bcm2835_gpio_lev(DRV8343_FLT);	//read DRV8343 general Fault status
-		bcm2835_pwm_set_data(PWM_CHANNEL0, 512);
-		delay(PWM_delay);	//delay in ms
+		over_tmp_FLT = bcm2835_gpio_lev(Power_MOSFET_over_tmp_alert);	//read TMP275 temperature; active high
+		bcm2835_pwm_set_data(PWM_CHANNEL0, 512);	//change motor speed 
 
-		PCB_tmp_C = tmp275_read_tmp(&tmp_DAC_data);
-		PCB_tmp_F = C_to_F(PCB_tmp_C);
-		printf("PCB Temperature = %.1fC ", *PCB_tmp_C);
-		printf("(%.1fF) \n", *PCB_tmp_F);
-		
-		delay(1000);
-
+		// Fault Handling	
 		if(DRV8343_FLT_val == 0){	//active low
 			printf("DRV8343 fault flag is active; Check Fault Status and DIAG Status Register for more details \n");
 			printf("SPI_REG_FAULT_STAT \n");
@@ -143,6 +148,34 @@ int main(int argc, char **argv){
 			++RETRY_count;
 			printf("Retry count: %d \n\n", RETRY_count);
 			//return 0;
+		}
+		if(over_tmp_FLT == 1){	//active high; overheating
+			//Power MOSFET over temperature alert
+			//alert will stop according to the temperature setting in TMP275.h
+			power_MOSFET_cooling_fan_CTRL(fan_ON);	// turn on cooling fan and LED indicator
+			while(over_tmp_FLT == 1){	// as long as PCB is overheating
+				printf("PCB overheating!!! \n");
+				motor_coast(coast_ON);		//slow down to stop
+				tmp275_tmp_report(&PCB_tmp_C, &PCB_tmp_F, &tmp_DAC_data);
+				delay(1000);	// report once a second
+				over_tmp_FLT = bcm2835_gpio_lev(Power_MOSFET_over_tmp_alert);	//read TMP275 temperature; active high
+			}
+			motor_coast(coast_OFF);		//Enable PWM
+			power_MOSFET_cooling_fan_CTRL(fan_OFF);	// turn off cooling fan after PCB cools down
+		}
+
+		// Reporting
+		loop_count++;
+		if(loop_count >	report_count){	// depends loop execution delay
+			//printf("loop_count=%d \n", loop_count);
+			tmp275_tmp_report(&PCB_tmp_C, &PCB_tmp_F, &tmp_DAC_data);
+			//PCB warming up to the upper limit; cool it down
+			if(PCB_tmp_C > PCB_tmp_warm_high_limit){
+				power_MOSFET_cooling_fan_CTRL(fan_ON);	
+			} else if(PCB_tmp_C < PCB_tmp_warm_low_limit){	// turn off 
+				power_MOSFET_cooling_fan_CTRL(fan_OFF);	
+			}
+			loop_count = 0;
 		}
 	}
 	while(1){

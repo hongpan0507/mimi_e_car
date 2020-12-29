@@ -28,9 +28,13 @@
 #define SINT8   signed char
 #endif
 
+//will not compile when <math.h> is included
+//comment out for now
+/*
 #ifndef float_t
 #define float_t   float
 #endif
+*/
 
 #ifndef UINT8
 #define UINT8   unsigned char

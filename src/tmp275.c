@@ -11,8 +11,8 @@ void tmp275_init(){
 	char tmp275_reg_data;
 	short tmp_DAC_data = 0; 
 	float tmp_limit = 0;
-	float *PCB_tmp_C;		// PCB temperature data read from TMP275 closest to the MOSFETs
-	float *PCB_tmp_F;		// PCB temperature data read from TMP275 closest to the MOSFETs
+	float PCB_tmp_C = 0;		// PCB temperature data read from TMP275 closest to the MOSFETs
+	float PCB_tmp_F = 0;		// PCB temperature data read from TMP275 closest to the MOSFETs
 
 	printf("before writing config register \n");
 	tmp275_ptr = tmp275_config_reg;
@@ -42,32 +42,35 @@ void tmp275_init(){
 	tmp275_ptr = tmp275_tmp_low_reg;
 	tmp_limit = tmp275_tmp_low_limit;
 	tmp275_set_tmp_limit(&tmp275_ptr, &tmp_limit);
-	PCB_tmp_C = tmp275_read_tmp(&tmp_DAC_data);
-	PCB_tmp_F = C_to_F(PCB_tmp_C);
-	printf("Lower Temperature Limit = %.1fC ", *PCB_tmp_C);
-	printf("(%.1fF) \n", *PCB_tmp_F);
+	tmp275_read_tmp(&tmp_DAC_data, &PCB_tmp_C);
+	C_to_F(&PCB_tmp_C, &PCB_tmp_F);
+	printf("Lower Temperature Limit = %.1fC ", PCB_tmp_C);
+	printf("(%.1fF) \n", PCB_tmp_F);
 
 	tmp275_ptr = tmp275_tmp_high_reg;
 	tmp_limit = tmp275_tmp_high_limit;
 	tmp275_set_tmp_limit(&tmp275_ptr, &tmp_limit);
-	PCB_tmp_C = tmp275_read_tmp(&tmp_DAC_data);
-	PCB_tmp_F = C_to_F(PCB_tmp_C);
-	printf("Upper Temperature Limit = %.1fC ", *PCB_tmp_C);
-	printf("(%.1fF) \n", *PCB_tmp_F);
+	tmp275_read_tmp(&tmp_DAC_data, &PCB_tmp_C);
+	C_to_F(&PCB_tmp_C, &PCB_tmp_F);
+	printf("Upper Temperature Limit = %.1fC ", PCB_tmp_C);
+	printf("(%.1fF) \n", PCB_tmp_F);
 
 	//point to temperature register before reading temperature
 	tmp275_ptr = tmp275_tmp_data_reg;
 	tmp275_write_ptr(&tmp275_ptr);	
-	PCB_tmp_C = tmp275_read_tmp(&tmp_DAC_data);
-	PCB_tmp_F = C_to_F(PCB_tmp_C);
-
-	printf("PCB Temperature = %.1fC ", *PCB_tmp_C);
-	printf("(%.1fF) \n", *PCB_tmp_F);
+	tmp275_tmp_report(&PCB_tmp_C, &PCB_tmp_F, &tmp_DAC_data);
 
 	printf("tmp275 temperature precision: \n");
 	printf("tmp275 upper temperature \n");
 	printf("tmp275 default pointer is set to read temperature\n");
 	printf("tmp275 setup completed\n");	
+}
+
+void tmp275_tmp_report(float *PCB_tmp_C, float *PCB_tmp_F, short *tmp_DAC_data){
+	tmp275_read_tmp(tmp_DAC_data, PCB_tmp_C);
+	C_to_F(PCB_tmp_C, PCB_tmp_F);
+	printf("PCB Temperature = %.1fC ", *PCB_tmp_C);
+	printf("(%.1fF) \n", *PCB_tmp_F);
 }
 
 // Datasheet Page 8
@@ -80,11 +83,10 @@ void tmp275_init(){
 // Debugging tips:
 // Make sure I2C has the address set to read tmp275 chip
 // Make sure tmp275 pointer is pointing to temperature register before reading
-float *tmp275_read_tmp(short *data){
+void *tmp275_read_tmp(short *data, float *tmp){
 	// define as static in order to return its pointer position
 	// static keeps the variable alive after function call
-	static float tmp = 0;	
-	static char tmp275_buff[tmp275_tmp_data_len];
+	char tmp275_buff[tmp275_tmp_data_len];
 
 //	printf("Data before I2C read: %d \n", tmp275_buff[0]);
 //	printf("Data before I2C read: %d \n", tmp275_buff[1]);
@@ -94,9 +96,8 @@ float *tmp275_read_tmp(short *data){
 	
 	char_buff_to_short(tmp275_buff, data);
 	//printf("Data after buff conversion to short: %d \n", *data);
-	data_to_tmp(data, &tmp);
+	data_to_tmp(data, tmp);
 	//printf("Data after temp conversion: %.1f \n", tmp);
-	return &tmp;
 }
 
 //setting high or low temperature limit for TMP275
