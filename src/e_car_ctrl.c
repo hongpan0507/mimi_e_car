@@ -19,7 +19,7 @@ int e_car_init(){
 	bcm2835_gpio_fsel(Motor_DIR_PIN_IN, BCM2835_GPIO_FSEL_INPT);
 	bcm2835_gpio_set_pud(Motor_DIR_PIN_IN, BCM2835_GPIO_PUD_UP);	//pull up
 	bcm2835_gpio_fsel(PEDAL_PIN, BCM2835_GPIO_FSEL_INPT);
-	bcm2835_gpio_set_pud(PEDAL_PIN, BCM2835_GPIO_PUD_UP);	//pull up
+	bcm2835_gpio_set_pud(PEDAL_PIN, BCM2835_GPIO_PUD_UP);			//pull up
 	bcm2835_gpio_fsel(DRV8343_FLT, BCM2835_GPIO_FSEL_INPT);
 	//cannot use pull up here; input is at 1.2V when Fault is active (low)
 	//there is a 10k pull-up on the board
@@ -47,7 +47,6 @@ int e_car_init(){
 	bcm2835_pwm_set_range(PWM_CHANNEL1, PWM_RANGE);
 
 	//start up initial condition
-	motor_brake();
 	motor_coast(coast_ON);
 	//motor_brake();	
 	power_MOSFET_cooling_fan_CTRL(fan_OFF);
@@ -76,15 +75,19 @@ void motor_DIR(){
 // for now time is controlled by the time it takes to execute the code in the while loop
 // the time is tracked by counting the loop
 void motor_speed_ctrl_linear(uint16_t *PWM_val, float *ramp_rate, uint16_t *init_PWM_val,  uint32_t *time_count){
-	//time_count is large
-	//need to adjust ramp_rate to offset time_count
-	*PWM_val = *ramp_rate * *time_count + *init_PWM_val;
-	if(*PWM_val >= PWM_max){	//upper limit
-		*PWM_val = PWM_max;
-	} else if(*PWM_val <= 0){	//lower limit
-		*PWM_val = 0;
+	//time_count is large; normalize it and use ramp_rate to control speed
+	//ideally ramp_rate = 1 because PWM_val is integer; float number will convert to the same integer before it's big enough
+	//keep increasing PWM_time_unit if ramp_rate is not close to 1
+	*PWM_val = *ramp_rate * *time_count/PWM_time_unit + *init_PWM_val;
+	//printf("PWM_val= %d \n", *PWM_val);
+}
+
+void motor_move(uint16_t *PWM_val, uint8_t *motor_DIR_val){
+	if(*motor_DIR_val == 1){	// move forward
+		bcm2835_pwm_set_data(PWM_CHANNEL0, *PWM_val);	//change motor speed 
+	} else if (*motor_DIR_val == 0){	//move backward
+		bcm2835_pwm_set_data(PWM_CHANNEL1, *PWM_val);	//change motor speed 
 	}
-	bcm2835_pwm_set_data(PWM_CHANNEL0, *PWM_val);	//change motor speed 
 }
 
 // Synchronus delay

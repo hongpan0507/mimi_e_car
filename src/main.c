@@ -102,6 +102,16 @@ int main(int argc, char **argv){
 	DRV83xx_reg_write(&SPI_addr, &erase_mask, &write_mask, &read_data, &write_data);
 
 
+	
+	uint16_t PWM_val = 0;
+	uint32_t time_count = 0;		// for PWM control 
+	//ramp_rate was found by tuning
+	//initial value is 0.00001
+	//time_count%100000 was used
+	float ramp_rate = PWM_ramp_rate;
+	
+	uint16_t init_PWM_val = PWM_init;
+	
 	int pwm_data = 0;
 	uint8_t Motor_DIR_val = 0;
 	uint8_t pre_PEDAL_val = 0;
@@ -123,12 +133,39 @@ int main(int argc, char **argv){
 
 	motor_coast(coast_OFF);
 	while(1){
-		//Normal Motor control
-		Motor_DIR_val = bcm2835_gpio_lev(Motor_DIR_PIN_IN);	//reading switch state
-
+		//Sensor reading
 		DRV8343_FLT_val = bcm2835_gpio_lev(DRV8343_FLT);	//read DRV8343 general Fault status
 		over_tmp_FLT = bcm2835_gpio_lev(Power_MOSFET_over_tmp_alert);	//read TMP275 temperature; active high
-		bcm2835_pwm_set_data(PWM_CHANNEL0, 512);	//change motor speed 
+
+		//Motor control
+		PEDAL_val = bcm2835_gpio_lev(PEDAL_PIN); //reading Pedal state
+		//Motor_DIR_val: 1 = forward; 0 = backward
+		Motor_DIR_val = bcm2835_gpio_lev(Motor_DIR_PIN_IN);	//reading switch state
+		//printf("PEDAL_val: %d \n", PEDAL_val);
+		//printf("Motor_DIR_val: %d \n", Motor_DIR_val);
+		//delay(100);
+		if(PEDAL_val == 1){		//Pedal pressed
+			motor_coast(coast_OFF);
+			if(PWM_val < PWM_max){	//keep increase PWM until reaching max
+				time_count++;		//allow time to count up
+				//only update PWM value after some time has passed
+				//highly dependant on how fast the program is going through the loop
+				//ideally timer interrupt should be used here
+				if(time_count%PWM_time_unit){	
+					motor_speed_ctrl_linear(&PWM_val, &ramp_rate, &init_PWM_val, &time_count);
+					//printf("PWM_val: %d\n", PWM_val);
+				}
+			}
+		}else if(PEDAL_val == 0){	//Pedal released
+			motor_coast(coast_ON);
+			PWM_val = 0;
+			time_count = 0;
+		}
+		if(Motor_DIR_val == 0){
+			//printf("Motor_DIR_val: %d \n", Motor_DIR_val);
+		}
+		motor_move(&PWM_val, &Motor_DIR_val);
+		pre_PEDAL_val = PEDAL_val;	//record previous Pedal state
 
 		// Fault Handling	
 		if(DRV8343_FLT_val == 0){	//active low
@@ -165,10 +202,9 @@ int main(int argc, char **argv){
 		}
 
 		// Reporting
-		loop_count++;
 		if(loop_count >	report_count){	// depends loop execution delay
 			//printf("loop_count=%d \n", loop_count);
-			tmp275_tmp_report(&PCB_tmp_C, &PCB_tmp_F, &tmp_DAC_data);
+			//tmp275_tmp_report(&PCB_tmp_C, &PCB_tmp_F, &tmp_DAC_data);
 			//PCB warming up to the upper limit; cool it down
 			if(PCB_tmp_C > PCB_tmp_warm_high_limit){
 				power_MOSFET_cooling_fan_CTRL(fan_ON);	
@@ -177,6 +213,7 @@ int main(int argc, char **argv){
 			}
 			loop_count = 0;
 		}
+		loop_count++;
 	}
 	while(1){
 		Motor_DIR_val = bcm2835_gpio_lev(Motor_DIR_PIN_IN);	//reading switch state
