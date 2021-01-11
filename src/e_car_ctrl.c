@@ -16,6 +16,8 @@ int e_car_init(){
 	bcm2835_gpio_write(PWM_INLx_EN, HIGH);	
 
 	//set GPIO pin as input and set up pull up or pull down
+	bcm2835_gpio_fsel(Motor_COAST_PIN, BCM2835_GPIO_FSEL_INPT);
+	bcm2835_gpio_set_pud(Motor_COAST_PIN, BCM2835_GPIO_PUD_UP);	//pull up
 	bcm2835_gpio_fsel(Motor_DIR_PIN_IN, BCM2835_GPIO_FSEL_INPT);
 	bcm2835_gpio_set_pud(Motor_DIR_PIN_IN, BCM2835_GPIO_PUD_UP);	//pull up
 	bcm2835_gpio_fsel(PEDAL_PIN, BCM2835_GPIO_FSEL_INPT);
@@ -26,6 +28,8 @@ int e_car_init(){
 	//it looks like DRV8343 open drain pin does not have enough strength to pull the line low when Raspberry Pi pull-up is enabled
 	//The downside of this is that this programm will keep reporting DRV8343 Fault Flag when the line is not connected
 	bcm2835_gpio_set_pud(DRV8343_FLT, BCM2835_GPIO_PUD_DOWN);	//pull down
+	bcm2835_gpio_fsel(Motor_DRV_FLT_RST_PIN, BCM2835_GPIO_FSEL_INPT);
+	bcm2835_gpio_set_pud(Motor_DRV_FLT_RST_PIN, BCM2835_GPIO_PUD_UP);	//pull up
 
 	//set GPIO pin as input for TMP275 alert
 	// Pull up is already installed on PCB
@@ -85,7 +89,9 @@ void motor_speed_ctrl_linear(uint16_t *PWM_val, float *ramp_rate, uint16_t *init
 void motor_move(uint16_t *PWM_val, uint8_t *motor_DIR_val){
 	if(*motor_DIR_val == 1){	// move forward
 		bcm2835_pwm_set_data(PWM_CHANNEL0, *PWM_val);	//change motor speed 
+		bcm2835_pwm_set_data(PWM_CHANNEL1, 0);	//change motor speed 
 	} else if (*motor_DIR_val == 0){	//move backward
+		bcm2835_pwm_set_data(PWM_CHANNEL0, 0);	//change motor speed 
 		bcm2835_pwm_set_data(PWM_CHANNEL1, *PWM_val);	//change motor speed 
 	}
 }
@@ -112,6 +118,24 @@ void motor_coast(uint8_t CTRL){
 	} else if (CTRL == 0){
 		bcm2835_gpio_write(PWM_INLx_EN, HIGH);	
 	}
+}
+
+void motor_gentle_stop(uint16_t *PWM_val, uint32_t *time_count, float *ramp_rate, uint16_t *init_PWM_val){
+ 	if(*PWM_val > *init_PWM_val){
+ 		//*time_count--;		//allow time to count up
+ 		*time_count = *time_count - 1;		//allow time to count up
+ 		//only update PWM value after some time has passed
+ 		//highly dependant on how fast the program is going through the loop
+ 		//ideally timer interrupt should be used here
+ 		if(*time_count%PWM_time_unit){	
+ 			motor_speed_ctrl_linear(PWM_val, ramp_rate, init_PWM_val, time_count);
+ 			//printf("PWM_val: %d\n", PWM_val);
+ 		}
+ 	}else{
+ 		motor_coast(coast_ON);
+ 		*PWM_val = 0;
+ 		*time_count = 0;
+ 	}
 }
 
 void power_MOSFET_cooling_fan_CTRL(uint8_t CTRL){

@@ -1,7 +1,7 @@
 // TI TMP275 temperature sensor
 #define tmp275_tmp_low_limit			47.0		// in C
 #define tmp275_tmp_high_limit			50.0		// in C
-#define I2C1_tmp275_slave_addr		0b01001001
+#define I2C1_tmp275_slave_addr		0b01001011
 #define tmp275_tmp_data_len			2
 
 #define tmp275_tmp_conv_ceiling		127.9375	// in C; DS page 8	
