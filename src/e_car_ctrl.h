@@ -51,5 +51,6 @@ void motor_speed_ctrl_linear(uint16_t *PWM_val, float *ramp_rate, uint16_t *init
 void motor_move(uint16_t *PWM_val, uint8_t *motor_DIR_val);
 void motor_brake();	//hard stop when E-stop button is pushed
 void motor_coast(uint8_t CTRL);
-void motor_gentle_stop(uint16_t *PWM_val, uint32_t *time_count, float *ramp_rate, uint16_t *init_PWM_val);
+void motor_gentle_start(uint16_t *PWM_val, uint32_t *time_count, float *ramp_rate, uint16_t *init_PWM_val, uint8_t *Motor_DIR_val);
+void motor_gentle_stop(uint16_t *PWM_val, uint32_t *time_count, float *ramp_rate, uint16_t *init_PWM_val, uint8_t *Motor_DIR_val);
 void power_MOSFET_cooling_fan_CTRL(uint8_t CTRL);

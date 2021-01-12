@@ -120,7 +120,23 @@ void motor_coast(uint8_t CTRL){
 	}
 }
 
-void motor_gentle_stop(uint16_t *PWM_val, uint32_t *time_count, float *ramp_rate, uint16_t *init_PWM_val){
+void motor_gentle_start(uint16_t *PWM_val, uint32_t *time_count, float *ramp_rate, uint16_t *init_PWM_val, uint8_t *Motor_DIR_val){
+	motor_coast(coast_OFF);
+	if(*PWM_val < PWM_max){	//keep increase PWM until reaching max
+		//time_count++;		//allow time to count up
+ 		*time_count = *time_count + 1;		//allow time to count up
+		//only update PWM value after some time has passed
+		//highly dependant on how fast the program is going through the loop
+		//ideally timer interrupt should be used here
+		if(*time_count%PWM_time_unit){	
+ 			motor_speed_ctrl_linear(PWM_val, ramp_rate, init_PWM_val, time_count);
+			//printf("PWM_val: %d\n", PWM_val);
+		}
+	}
+	motor_move(PWM_val, Motor_DIR_val);
+}
+
+void motor_gentle_stop(uint16_t *PWM_val, uint32_t *time_count, float *ramp_rate, uint16_t *init_PWM_val, uint8_t *Motor_DIR_val){
  	if(*PWM_val > *init_PWM_val){
  		//*time_count--;		//allow time to count up
  		*time_count = *time_count - 1;		//allow time to count up
@@ -131,6 +147,7 @@ void motor_gentle_stop(uint16_t *PWM_val, uint32_t *time_count, float *ramp_rate
  			motor_speed_ctrl_linear(PWM_val, ramp_rate, init_PWM_val, time_count);
  			//printf("PWM_val: %d\n", PWM_val);
  		}
+		motor_move(PWM_val, Motor_DIR_val);
  	}else{
  		motor_coast(coast_ON);
  		*PWM_val = 0;

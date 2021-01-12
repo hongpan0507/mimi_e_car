@@ -531,7 +531,7 @@ typedef struct DRV_Control_Obj
     uint16_t Register_Counter;
 } DRV_Control_Obj;
 
-
+void DRV83xx_init(uint16_t *SPI_addr, uint16_t *write_data, uint16_t *read_data, uint16_t *erase_mask, uint16_t *write_mask);
 void DRV83xx_reg_write(uint16_t *addr, uint16_t *erase_mask, uint16_t *write_mask, uint16_t *read_data, uint16_t *write_data);
 void DRV83xx_FLT_CLR(uint16_t *SPI_addr, uint16_t *write_data, uint16_t *read_data);
 
