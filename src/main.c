@@ -60,7 +60,9 @@ int main(int argc, char **argv){
 	uint8_t pre_PEDAL_val = 0;
 	uint8_t PEDAL_val = 0;
 	uint8_t DRV8343_FLT_val = 0;
+	uint8_t DRV8343_FLT_report = 0;
 	uint8_t Motor_DRV_FLT_RST_val = 0;
+	uint8_t Motor_DRV_FLT_RST_count = 0;
 	int RETRY_count = 0;
 	uint8_t over_tmp_FLT = 0;
 	
@@ -81,6 +83,7 @@ int main(int argc, char **argv){
 		DRV8343_FLT_val = bcm2835_gpio_lev(DRV8343_FLT);	//read DRV8343 general Fault status
 		over_tmp_FLT = bcm2835_gpio_lev(Power_MOSFET_over_tmp_alert);	//read TMP275 temperature; active high
 
+
 		//Motor control
 		PEDAL_val = bcm2835_gpio_lev(PEDAL_PIN); //reading Pedal state
 		Motor_coast_val = bcm2835_gpio_lev(Motor_COAST_PIN); //reading Pedal state
@@ -93,44 +96,50 @@ int main(int argc, char **argv){
 			}
 			if(PEDAL_val == 1){		//Pedal pressed
 				motor_gentle_start(&PWM_val, &time_count, &ramp_rate, &init_PWM_val, &Motor_DIR_val);
-//				motor_coast(coast_OFF);
-//				if(PWM_val < PWM_max){	//keep increase PWM until reaching max
-//					time_count++;		//allow time to count up
-//					//only update PWM value after some time has passed
-//					//highly dependant on how fast the program is going through the loop
-//					//ideally timer interrupt should be used here
-//					if(time_count%PWM_time_unit){	
-//						motor_speed_ctrl_linear(&PWM_val, &ramp_rate, &init_PWM_val, &time_count);
-//						//printf("PWM_val: %d\n", PWM_val);
-//					}
-//				}
-//				motor_move(&PWM_val, &Motor_DIR_val);
 			}else if(PEDAL_val == 0){	//Pedal released
 				motor_gentle_stop(&PWM_val, &time_count, &ramp_rate, &init_PWM_val, &Motor_DIR_val);
 			}
-			pre_PEDAL_val = PEDAL_val;	//record previous Pedal state
 		}else{		//control by coast switch
 			motor_gentle_stop(&PWM_val, &time_count, &ramp_rate, &init_PWM_val, &Motor_DIR_val);
 		}
 
 		// Fault Handling	
-		if(DRV8343_FLT_val == 0){	//active low
-			printf("DRV8343 fault flag is active; Check Fault Status and DIAG Status Register for more details \n");
-			printf("SPI_REG_FAULT_STAT \n");
-			SPI_addr = SPI_REG_FAULT_STAT;
-			DRV8343_SPI_read(&SPI_addr, &read_data, true);
-			printf("SPI_REG_DIAG_STAT_A \n");
-			SPI_addr = SPI_REG_DIAG_STAT_A;
-			DRV8343_SPI_read(&SPI_addr, &read_data, true);
-			printf("SPI_REG_DIAG_STAT_B \n");
-			SPI_addr = SPI_REG_DIAG_STAT_B;
-			DRV8343_SPI_read(&SPI_addr, &read_data, true);
-			printf("SPI_REG_DIAG_STAT_C \n");
-			SPI_addr = SPI_REG_DIAG_STAT_C;
-			DRV8343_SPI_read(&SPI_addr, &read_data, true);
-			++RETRY_count;
-			printf("Retry count: %d \n\n", RETRY_count);
-			//return 0;
+		while(DRV8343_FLT_val == 0){	//active low
+			if(DRV8343_FLT_report == 0){	// only report once for each fault condition; then wait for reset signal
+				printf("DRV8343 fault flag is active; Check Fault Status and DIAG Status Register for more details \n");
+				printf("SPI_REG_FAULT_STAT \n");
+				SPI_addr = SPI_REG_FAULT_STAT;
+				DRV8343_SPI_read(&SPI_addr, &read_data, true);
+				printf("SPI_REG_DIAG_STAT_A \n");
+				SPI_addr = SPI_REG_DIAG_STAT_A;
+				DRV8343_SPI_read(&SPI_addr, &read_data, true);
+				printf("SPI_REG_DIAG_STAT_B \n");
+				SPI_addr = SPI_REG_DIAG_STAT_B;
+				DRV8343_SPI_read(&SPI_addr, &read_data, true);
+				printf("SPI_REG_DIAG_STAT_C \n");
+				SPI_addr = SPI_REG_DIAG_STAT_C;
+				DRV8343_SPI_read(&SPI_addr, &read_data, true);
+				++RETRY_count;
+				printf("Retry count: %d \n\n", RETRY_count);
+			}
+			motor_coast(coast_ON);
+			PWM_val = 0;
+			time_count = 0;
+			//!!!!!!!!!turn on the status warning light here!!!!!!
+			Motor_DRV_FLT_RST_val = bcm2835_gpio_lev(Motor_DRV_FLT_RST_PIN);	//read the status of driver fault reset pin
+			if(Motor_DRV_FLT_RST_val == 0){
+				++Motor_DRV_FLT_RST_count;
+				if(Motor_DRV_FLT_RST_count >= 20){	//press reset button for xx of the delay(100ms)
+					DRV83xx_FLT_CLR(&SPI_addr, &write_data, &read_data);
+					printf("DRV8343 Fault Cleared \n");
+					motor_brake();
+					DRV8343_FLT_report = 0;
+					Motor_DRV_FLT_RST_count = 0;
+					break;
+				}
+			}
+			DRV8343_FLT_report = 1;
+			delay(100);
 		}
 		if(over_tmp_FLT == 1){	//active high; overheating
 			//Power MOSFET over temperature alert

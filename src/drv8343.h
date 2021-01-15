@@ -127,10 +127,30 @@
 /* SPI_REG_09 : DRV_CTRL_REG_6_MASK */
 #define DRV8343S_VDS_LVL_LA_MASK     (0xF0)         /*  */
 #define DRV8343S_VDS_LVL_HA_MASK     (0x0F)         /*  */
+#define DRV8343S_VDS_LVL_LA_0p06V     (0x00)         /*  */
+#define DRV8343S_VDS_LVL_HA_0p06V     (0x00)         /*  */
+#define DRV8343S_VDS_LVL_LA_0p13V     (0x01)         /*  */
+#define DRV8343S_VDS_LVL_HA_0p13V     (0x01)         /*  */
+#define DRV8343S_VDS_LVL_LA_0p20V     (0x02)         /*  */
+#define DRV8343S_VDS_LVL_HA_0p20V     (0x02)         /*  */
+#define DRV8343S_VDS_LVL_LA_0p26V     (0x03)         /*  */
+#define DRV8343S_VDS_LVL_LA_0p26V     (0x03)         /*  */
+#define DRV8343S_VDS_LVL_LA_0p26V     (0x03)         /*  */
+#define DRV8343S_VDS_LVL_HA_0p26V     (0x03)         /*  */
+#define DRV8343S_VDS_LVL_LA_1p88V     (0xF0)         /*  */
+#define DRV8343S_VDS_LVL_HA_1p88V     (0x0F)         /*  */
 
 /* SPI_REG_0A : DRV_CTRL_REG_7_MASK */
 #define DRV8343S_VDS_LVL_LB_MASK     (0xF0)         /*  */
 #define DRV8343S_VDS_LVL_HB_MASK     (0x0F)         /*  */
+#define DRV8343S_VDS_LVL_LB_0p06V     (0x00)         /*  */
+#define DRV8343S_VDS_LVL_HB_0p06V     (0x00)         /*  */
+#define DRV8343S_VDS_LVL_LB_0p13V     (0x01)         /*  */
+#define DRV8343S_VDS_LVL_HB_0p13V     (0x01)         /*  */
+#define DRV8343S_VDS_LVL_LB_0p20V     (0x02)         /*  */
+#define DRV8343S_VDS_LVL_HB_0p20V     (0x02)         /*  */
+#define DRV8343S_VDS_LVL_LB_0p26V     (0x03)         /*  */
+#define DRV8343S_VDS_LVL_HB_0p26V     (0x03)         /*  */
 #define DRV8343S_VDS_LVL_LB_1p88V     (0xF0)         /*  */
 #define DRV8343S_VDS_LVL_HB_1p88V     (0x0F)         /*  */
 
@@ -158,6 +178,7 @@
 #define DRV8343S_DIS_CPUV_MASK   (0x10)         /*  */
 #define DRV8343S_DIS_GDF_MASK    (0x08)         /*  */
 #define DRV8343S_OCP_DEG_MASK    (0x07)         /*  */
+#define DRV8343S_OCP_DEG_10p25us  (0x04)         /*  */
 #define DRV8343S_OCP_DEG_20p5us  (0x07)         /*  */
 
 /* SPI_REG_0E : DRV_CTRL_REG_11_MASK  */

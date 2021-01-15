@@ -28,16 +28,35 @@ void DRV83xx_init(uint16_t *SPI_addr, uint16_t *write_data, uint16_t *read_data,
 	printf("set VDS overcurrent deglitch time \n");
 	*SPI_addr = SPI_REG_DRV_CTRL_10;
 	*erase_mask = DRV8343S_OCP_DEG_MASK;
+	//*write_mask = DRV8343S_OCP_DEG_10p25us;
 	*write_mask = DRV8343S_OCP_DEG_20p5us;
 	DRV83xx_reg_write(SPI_addr, erase_mask, write_mask, read_data, write_data);
+
+	printf("set phase A VDS Fault Trip voltage\n");
+	*SPI_addr = SPI_REG_DRV_CTRL_7;
+	*erase_mask = DRV8343S_VDS_LVL_LA_MASK;
+	//*write_mask = DRV8343S_VDS_LVL_LA_0p06V;
+	//*write_mask = DRV8343S_VDS_LVL_LA_0p13V;
+	*write_mask = DRV8343S_VDS_LVL_LA_0p20V;
+	DRV83xx_reg_write(SPI_addr, erase_mask, write_mask, read_data, write_data);
+	*erase_mask = DRV8343S_VDS_LVL_HA_MASK;
+	//*write_mask = DRV8343S_VDS_LVL_HA_0p06V;
+	//*write_mask = DRV8343S_VDS_LVL_HA_0p13V;
+	*write_mask = DRV8343S_VDS_LVL_HA_0p20V;
+	DRV83xx_reg_write(SPI_addr, erase_mask, write_mask, read_data, write_data);
+	DRV8343_SPI_read(SPI_addr, read_data, true);
 
 	printf("set phase B VDS Fault Trip voltage\n");
 	*SPI_addr = SPI_REG_DRV_CTRL_7;
 	*erase_mask = DRV8343S_VDS_LVL_LB_MASK;
-	*write_mask = DRV8343S_VDS_LVL_LB_1p88V;
+	//*write_mask = DRV8343S_VDS_LVL_LB_0p06V;
+	//*write_mask = DRV8343S_VDS_LVL_LB_0p13V;
+	*write_mask = DRV8343S_VDS_LVL_LB_0p20V;
 	DRV83xx_reg_write(SPI_addr, erase_mask, write_mask, read_data, write_data);
 	*erase_mask = DRV8343S_VDS_LVL_HB_MASK;
-	*write_mask = DRV8343S_VDS_LVL_HB_1p88V;
+	//*write_mask = DRV8343S_VDS_LVL_HB_0p06V;
+	//*write_mask = DRV8343S_VDS_LVL_HB_0p13V;
+	*write_mask = DRV8343S_VDS_LVL_HB_0p20V;
 	DRV83xx_reg_write(SPI_addr, erase_mask, write_mask, read_data, write_data);
 	DRV8343_SPI_read(SPI_addr, read_data, true);
 
@@ -45,14 +64,14 @@ void DRV83xx_init(uint16_t *SPI_addr, uint16_t *write_data, uint16_t *read_data,
 	*SPI_addr = SPI_REG_DRV_CTRL_11;
 	*erase_mask = DRV8343S_OCP_MODE_MASK;
 	//*write_mask = DRV8343S_OCP_MODE_OFF;
-	//*write_mask = DRV8343S_OCP_MODE_LATCHED_FLT;
-	*write_mask = DRV8343S_OCP_MODE_RETRY;
+	*write_mask = DRV8343S_OCP_MODE_LATCHED_FLT;
+	//*write_mask = DRV8343S_OCP_MODE_RETRY;
 	DRV83xx_reg_write(SPI_addr, erase_mask, write_mask, read_data, write_data);
 
 	printf("set Fault Retry Time\n");
 	*SPI_addr = SPI_REG_DRV_CTRL_9;
 	*erase_mask = DRV8343S_TRETRY_MASK;
-	*write_mask = DRV8343S_TRETRY_2ms;
+	*write_mask = DRV8343S_TRETRY_8ms;
 	DRV83xx_reg_write(SPI_addr, erase_mask, write_mask, read_data, write_data);
 
 	printf("disable current sense amplifier overcurrent fault detection\n");
