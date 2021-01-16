@@ -101,6 +101,7 @@ int main(int argc, char **argv){
 			}
 		}else{		//control by coast switch
 			motor_gentle_stop(&PWM_val, &time_count, &ramp_rate, &init_PWM_val, &Motor_DIR_val);
+			//may need to brake the motor when pwm is slowed down to zero
 		}
 
 		// Fault Handling	

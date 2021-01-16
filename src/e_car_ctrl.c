@@ -44,15 +44,15 @@ int e_car_init(){
 	//Set range to 1024 in Markspace Mode
 	//PRF=(19.2MHz/16)/1024=1171.875Hz
 	printf("Setting PWM Parameter \n");
-	bcm2835_pwm_set_clock(BCM2835_PWM_CLOCK_DIVIDER_16);
+	bcm2835_pwm_set_clock(BCM2835_PWM_CLOCK_DIVIDER_2);
 	bcm2835_pwm_set_mode(PWM_CHANNEL0, 1, 1);
 	bcm2835_pwm_set_range(PWM_CHANNEL0, PWM_RANGE);
 	bcm2835_pwm_set_mode(PWM_CHANNEL1, 1, 1);
 	bcm2835_pwm_set_range(PWM_CHANNEL1, PWM_RANGE);
 
 	//start up initial condition
+	motor_brake();	
 	motor_coast(coast_ON);
-	//motor_brake();	
 	power_MOSFET_cooling_fan_CTRL(fan_OFF);
 
 	printf("e_car Initialization Completed!\n");
@@ -149,6 +149,7 @@ void motor_gentle_stop(uint16_t *PWM_val, uint32_t *time_count, float *ramp_rate
  		}
 		motor_move(PWM_val, Motor_DIR_val);
  	}else{
+		motor_brake();	//use for setting BCM2835 PWM to zero; otherwise, small pulse will remain with PWM=init_PWM
  		motor_coast(coast_ON);
  		*PWM_val = 0;
  		*time_count = 0;

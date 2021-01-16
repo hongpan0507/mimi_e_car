@@ -37,12 +37,16 @@ void DRV83xx_init(uint16_t *SPI_addr, uint16_t *write_data, uint16_t *read_data,
 	*erase_mask = DRV8343S_VDS_LVL_LA_MASK;
 	//*write_mask = DRV8343S_VDS_LVL_LA_0p06V;
 	//*write_mask = DRV8343S_VDS_LVL_LA_0p13V;
-	*write_mask = DRV8343S_VDS_LVL_LA_0p20V;
+	//*write_mask = DRV8343S_VDS_LVL_LA_0p20V;
+	*write_mask = DRV8343S_VDS_LVL_LA_0p26V;
+	//*write_mask = DRV8343S_VDS_LVL_LA_0p31V;
 	DRV83xx_reg_write(SPI_addr, erase_mask, write_mask, read_data, write_data);
 	*erase_mask = DRV8343S_VDS_LVL_HA_MASK;
 	//*write_mask = DRV8343S_VDS_LVL_HA_0p06V;
 	//*write_mask = DRV8343S_VDS_LVL_HA_0p13V;
-	*write_mask = DRV8343S_VDS_LVL_HA_0p20V;
+	//*write_mask = DRV8343S_VDS_LVL_HA_0p20V;
+	*write_mask = DRV8343S_VDS_LVL_HA_0p26V;
+	//*write_mask = DRV8343S_VDS_LVL_HA_0p31V;
 	DRV83xx_reg_write(SPI_addr, erase_mask, write_mask, read_data, write_data);
 	DRV8343_SPI_read(SPI_addr, read_data, true);
 
@@ -51,12 +55,16 @@ void DRV83xx_init(uint16_t *SPI_addr, uint16_t *write_data, uint16_t *read_data,
 	*erase_mask = DRV8343S_VDS_LVL_LB_MASK;
 	//*write_mask = DRV8343S_VDS_LVL_LB_0p06V;
 	//*write_mask = DRV8343S_VDS_LVL_LB_0p13V;
-	*write_mask = DRV8343S_VDS_LVL_LB_0p20V;
+	//*write_mask = DRV8343S_VDS_LVL_LB_0p20V;
+	*write_mask = DRV8343S_VDS_LVL_LB_0p26V;
+	//*write_mask = DRV8343S_VDS_LVL_LB_0p31V;
 	DRV83xx_reg_write(SPI_addr, erase_mask, write_mask, read_data, write_data);
 	*erase_mask = DRV8343S_VDS_LVL_HB_MASK;
 	//*write_mask = DRV8343S_VDS_LVL_HB_0p06V;
 	//*write_mask = DRV8343S_VDS_LVL_HB_0p13V;
-	*write_mask = DRV8343S_VDS_LVL_HB_0p20V;
+	//*write_mask = DRV8343S_VDS_LVL_HB_0p20V;
+	*write_mask = DRV8343S_VDS_LVL_HB_0p26V;
+	//*write_mask = DRV8343S_VDS_LVL_HB_0p31V;
 	DRV83xx_reg_write(SPI_addr, erase_mask, write_mask, read_data, write_data);
 	DRV8343_SPI_read(SPI_addr, read_data, true);
 

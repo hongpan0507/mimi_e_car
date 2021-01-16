@@ -129,14 +129,14 @@
 #define DRV8343S_VDS_LVL_HA_MASK     (0x0F)         /*  */
 #define DRV8343S_VDS_LVL_LA_0p06V     (0x00)         /*  */
 #define DRV8343S_VDS_LVL_HA_0p06V     (0x00)         /*  */
-#define DRV8343S_VDS_LVL_LA_0p13V     (0x01)         /*  */
+#define DRV8343S_VDS_LVL_LA_0p13V     (0x10)         /*  */
 #define DRV8343S_VDS_LVL_HA_0p13V     (0x01)         /*  */
-#define DRV8343S_VDS_LVL_LA_0p20V     (0x02)         /*  */
+#define DRV8343S_VDS_LVL_LA_0p20V     (0x20)         /*  */
 #define DRV8343S_VDS_LVL_HA_0p20V     (0x02)         /*  */
-#define DRV8343S_VDS_LVL_LA_0p26V     (0x03)         /*  */
-#define DRV8343S_VDS_LVL_LA_0p26V     (0x03)         /*  */
-#define DRV8343S_VDS_LVL_LA_0p26V     (0x03)         /*  */
+#define DRV8343S_VDS_LVL_LA_0p26V     (0x30)         /*  */
 #define DRV8343S_VDS_LVL_HA_0p26V     (0x03)         /*  */
+#define DRV8343S_VDS_LVL_LA_0p31V     (0x40)         /*  */
+#define DRV8343S_VDS_LVL_HA_0p31V     (0x04)         /*  */
 #define DRV8343S_VDS_LVL_LA_1p88V     (0xF0)         /*  */
 #define DRV8343S_VDS_LVL_HA_1p88V     (0x0F)         /*  */
 
@@ -145,12 +145,14 @@
 #define DRV8343S_VDS_LVL_HB_MASK     (0x0F)         /*  */
 #define DRV8343S_VDS_LVL_LB_0p06V     (0x00)         /*  */
 #define DRV8343S_VDS_LVL_HB_0p06V     (0x00)         /*  */
-#define DRV8343S_VDS_LVL_LB_0p13V     (0x01)         /*  */
+#define DRV8343S_VDS_LVL_LB_0p13V     (0x10)         /*  */
 #define DRV8343S_VDS_LVL_HB_0p13V     (0x01)         /*  */
-#define DRV8343S_VDS_LVL_LB_0p20V     (0x02)         /*  */
+#define DRV8343S_VDS_LVL_LB_0p20V     (0x20)         /*  */
 #define DRV8343S_VDS_LVL_HB_0p20V     (0x02)         /*  */
-#define DRV8343S_VDS_LVL_LB_0p26V     (0x03)         /*  */
+#define DRV8343S_VDS_LVL_LB_0p26V     (0x30)         /*  */
 #define DRV8343S_VDS_LVL_HB_0p26V     (0x03)         /*  */
+#define DRV8343S_VDS_LVL_LB_0p31V     (0x40)         /*  */
+#define DRV8343S_VDS_LVL_HB_0p31V     (0x04)         /*  */
 #define DRV8343S_VDS_LVL_LB_1p88V     (0xF0)         /*  */
 #define DRV8343S_VDS_LVL_HB_1p88V     (0x0F)         /*  */
 

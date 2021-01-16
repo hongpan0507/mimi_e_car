@@ -25,16 +25,12 @@
 #define PWM_CHANNEL0 	0
 #define PWM_CHANNEL1 	1
 #define PWM_RANGE 		1024				//full duty cycle = 1024
-#define PWM_delay 		10					//duty cycle increase delay in ms
-#define PWM_DCIR 		1					//PWM Duty Cycle Increase Rate
-#define init_speed 		0.1*PWM_RANGE		//initial speed
-#define max_speed 		1.0*PWM_RANGE		//Top speed
-#define SS_ratio 		3					//start/stop duty cycle change ratio; need to stop faster than start
-
 #define PWM_init		0.1*PWM_RANGE		// initial_PWM = initial speed
-#define PWM_max			0.6*PWM_RANGE		// max_PWM = top speed	
+#define PWM_max			0.8*PWM_RANGE		// max_PWM = top speed	
 #define PWM_ramp_rate   1					// 
-//#define PWM_time_unit	3000				// control how fast PWM value is updated; found by trial and error; highly dependant on loop execution time
+//for driving
+//#define PWM_time_unit	2000				// control how fast PWM value is updated; found by trial and error; highly dependant on loop execution time
+// for testing
 #define PWM_time_unit	5000				// control how fast PWM value is updated; found by trial and error; highly dependant on loop execution time
 #define coast_ON		1
 #define coast_OFF		0
