@@ -180,8 +180,14 @@
 #define DRV8343S_DIS_CPUV_MASK   (0x10)         /*  */
 #define DRV8343S_DIS_GDF_MASK    (0x08)         /*  */
 #define DRV8343S_OCP_DEG_MASK    (0x07)         /*  */
-#define DRV8343S_OCP_DEG_10p25us  (0x04)         /*  */
-#define DRV8343S_OCP_DEG_20p5us  (0x07)         /*  */
+#define DRV8343S_OCP_DEG_2p5us		(0x00)         /*  */
+#define DRV8343S_OCP_DEG_4p75us  	(0x01)         /*  */
+#define DRV8343S_OCP_DEG_6p75us  	(0x02)         /*  */
+#define DRV8343S_OCP_DEG_8p75us  	(0x03)         /*  */
+#define DRV8343S_OCP_DEG_10p25us  	(0x04)         /*  */
+#define DRV8343S_OCP_DEG_11p5us  	(0x05)         /*  */
+#define DRV8343S_OCP_DEG_16p5us  	(0x06)         /*  */
+#define DRV8343S_OCP_DEG_20p5us  	(0x07)         /*  */
 
 /* SPI_REG_0E : DRV_CTRL_REG_11_MASK  */
 #define DRV8343S_RSVD_REG_10_MASK  (0x80)         /*  */

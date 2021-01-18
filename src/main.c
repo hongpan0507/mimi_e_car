@@ -55,7 +55,7 @@ int main(int argc, char **argv){
 	uint16_t init_PWM_val = PWM_init;
 	
 	int pwm_data = 0;
-	uint8_t Motor_coast_val = 0;
+	uint8_t Motor_brake_val = 0;
 	uint8_t Motor_DIR_val = 0;
 	uint8_t pre_PEDAL_val = 0;
 	uint8_t PEDAL_val = 0;
@@ -83,11 +83,10 @@ int main(int argc, char **argv){
 		DRV8343_FLT_val = bcm2835_gpio_lev(DRV8343_FLT);	//read DRV8343 general Fault status
 		over_tmp_FLT = bcm2835_gpio_lev(Power_MOSFET_over_tmp_alert);	//read TMP275 temperature; active high
 
-
 		//Motor control
 		PEDAL_val = bcm2835_gpio_lev(PEDAL_PIN); //reading Pedal state
-		Motor_coast_val = bcm2835_gpio_lev(Motor_COAST_PIN); //reading Pedal state
-		if(Motor_coast_val == 1){	//control by coast switch
+		Motor_brake_val = bcm2835_gpio_lev(Motor_BRAKE_PIN); //reading Pedal state
+		if(Motor_brake_val == 1){	//control by brake switch
 			if(PWM_val == 0){	//only allows change of direction when PWM is zero
 				//Motor_DIR_val: 1 = forward; 0 = backward
 				Motor_DIR_val = bcm2835_gpio_lev(Motor_DIR_PIN_IN);	//reading switch state
@@ -99,9 +98,15 @@ int main(int argc, char **argv){
 			}else if(PEDAL_val == 0){	//Pedal released
 				motor_gentle_stop(&PWM_val, &time_count, &ramp_rate, &init_PWM_val, &Motor_DIR_val);
 			}
-		}else{		//control by coast switch
-			motor_gentle_stop(&PWM_val, &time_count, &ramp_rate, &init_PWM_val, &Motor_DIR_val);
-			//may need to brake the motor when pwm is slowed down to zero
+		}else{		//control by brake switch
+			//motor_coast(coast_ON);
+			motor_brake();
+//			//brake the motor when pwm is slowed down to zero
+//			if(PWM_val == 0){
+//				motor_brake();
+//			}else{
+//				motor_gentle_stop(&PWM_val, &time_count, &ramp_rate, &init_PWM_val, &Motor_DIR_val);
+//			}
 		}
 
 		// Fault Handling	
@@ -132,7 +137,7 @@ int main(int argc, char **argv){
 				++Motor_DRV_FLT_RST_count;
 				if(Motor_DRV_FLT_RST_count >= 20){	//press reset button for xx of the delay(100ms)
 					DRV83xx_FLT_CLR(&SPI_addr, &write_data, &read_data);
-					printf("DRV8343 Fault Cleared \n");
+					printf("\n\n DRV8343 Fault Cleared \n\n");
 					motor_brake();
 					DRV8343_FLT_report = 0;
 					Motor_DRV_FLT_RST_count = 0;

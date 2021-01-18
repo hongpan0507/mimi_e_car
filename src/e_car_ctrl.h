@@ -18,7 +18,7 @@
 #define PWM_INLx_EN 	RPI_BPLUS_GPIO_J8_11 	//Use pin11/GPIO17 as output to enable PWM in 3xPWM mode; check DS P21 for more detail 
 
 #define Motor_DRV_FLT_RST_PIN		RPI_BPLUS_GPIO_J8_18	//Use Pin18/GPIO24  as input to read a Push button input to reset motor driver fault 
-#define Motor_COAST_PIN				RPI_BPLUS_GPIO_J8_15	//Use Pin15/GPIO22  as input to read a switch input to put motor in or out of coast mode 
+#define Motor_BRAKE_PIN				RPI_BPLUS_GPIO_J8_15	//Use Pin15/GPIO22  as input to read a switch input to put motor in or out of coast mode 
 #define Motor_DIR_PIN_IN 			RPI_BPLUS_GPIO_J8_16	//Use Pin16/GPIO23  as input to read a switch input to change motor direction 
 #define PEDAL_PIN 					RPI_BPLUS_GPIO_J8_13	//Use Pin13/GPIO27 on J8 header as input to start or stop motor 
 
@@ -26,7 +26,7 @@
 #define PWM_CHANNEL1 	1
 #define PWM_RANGE 		1024				//full duty cycle = 1024
 #define PWM_init		0.1*PWM_RANGE		// initial_PWM = initial speed
-#define PWM_max			0.8*PWM_RANGE		// max_PWM = top speed	
+#define PWM_max			0.5*PWM_RANGE		// max_PWM = top speed	
 #define PWM_ramp_rate   1					// 
 //for driving
 //#define PWM_time_unit	2000				// control how fast PWM value is updated; found by trial and error; highly dependant on loop execution time
@@ -41,8 +41,8 @@
 void HW();  //For testing only
 void GPIO_test(int PIN);    //For hardware GPIO pin function testing
 int e_car_init();	//pin setup
+void motor_PWM_reset();
 void motor_DIR();	//read and change motor direction
-//void motor_speed_ctrl_linear(int *PWM_val, uint16_t *ramp_rate, uint16_t *init_PWM_val, uint16_t *time_count);
 void motor_speed_ctrl_linear(uint16_t *PWM_val, float *ramp_rate, uint16_t *init_PWM_val,  uint32_t *time_count);
 void motor_move(uint16_t *PWM_val, uint8_t *motor_DIR_val);
 void motor_brake();	//hard stop when E-stop button is pushed

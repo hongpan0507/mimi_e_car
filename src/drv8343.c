@@ -28,8 +28,9 @@ void DRV83xx_init(uint16_t *SPI_addr, uint16_t *write_data, uint16_t *read_data,
 	printf("set VDS overcurrent deglitch time \n");
 	*SPI_addr = SPI_REG_DRV_CTRL_10;
 	*erase_mask = DRV8343S_OCP_DEG_MASK;
+	*write_mask = DRV8343S_OCP_DEG_2p5us;
 	//*write_mask = DRV8343S_OCP_DEG_10p25us;
-	*write_mask = DRV8343S_OCP_DEG_20p5us;
+	//*write_mask = DRV8343S_OCP_DEG_20p5us;
 	DRV83xx_reg_write(SPI_addr, erase_mask, write_mask, read_data, write_data);
 
 	printf("set phase A VDS Fault Trip voltage\n");
@@ -37,8 +38,8 @@ void DRV83xx_init(uint16_t *SPI_addr, uint16_t *write_data, uint16_t *read_data,
 	*erase_mask = DRV8343S_VDS_LVL_LA_MASK;
 	//*write_mask = DRV8343S_VDS_LVL_LA_0p06V;
 	//*write_mask = DRV8343S_VDS_LVL_LA_0p13V;
-	//*write_mask = DRV8343S_VDS_LVL_LA_0p20V;
-	*write_mask = DRV8343S_VDS_LVL_LA_0p26V;
+	*write_mask = DRV8343S_VDS_LVL_LA_0p20V;
+	//*write_mask = DRV8343S_VDS_LVL_LA_0p26V;
 	//*write_mask = DRV8343S_VDS_LVL_LA_0p31V;
 	DRV83xx_reg_write(SPI_addr, erase_mask, write_mask, read_data, write_data);
 	*erase_mask = DRV8343S_VDS_LVL_HA_MASK;
