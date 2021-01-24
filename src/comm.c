@@ -18,6 +18,7 @@ SPI
 #include <bcm2835.h>
 
 int DRV8343_SPI_init(){
+	printf("------------------------------- \n");
 	printf("Initialzing SPI communication...\n");
 	if(!bcm2835_spi_begin()){
 		printf("bcm2835_spi_begin failed. Are you running as root?\n");
@@ -34,6 +35,7 @@ int DRV8343_SPI_init(){
 	bcm2835_spi_setChipSelectPolarity(BCM2835_SPI_CS0, LOW);
 	printf("SPI Clock Speed: %02x MHz \n", clk_div);
 	printf("SPI communication setup completed\n"); 
+	printf("------------------------------- \n");
 	return 0;
 }
 
@@ -95,6 +97,7 @@ int DRV8343_SPI_write(uint16_t *addr, uint16_t *write_data, uint16_t *read_data,
 }
 
 int I2C_init(){
+	printf("------------------------------- \n");
 	printf("Initialzing I2C communication...\n");
 	if(!bcm2835_i2c_begin()){
 		printf("bcm2835_spi_begin failed. Are you running as root?\n");
@@ -107,5 +110,6 @@ int I2C_init(){
 	printf("Default Slave Address is set to read TMP275 \n");
 	printf("Need to set slave address before data transfer \n");
 	printf("I2C communication setup completed\n");
+	printf("------------------------------- \n");
 }
 

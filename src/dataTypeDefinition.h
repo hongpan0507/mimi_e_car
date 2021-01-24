@@ -37,7 +37,7 @@
 */
 
 #ifndef UINT8
-#define UINT8   unsigned char
+#define UINT8 unsigned char
 #endif
 
 #ifndef SINT16

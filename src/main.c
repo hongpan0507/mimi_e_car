@@ -4,6 +4,7 @@
 #include "comm.h"
 #include "drv8343.h"	// extract from DRV8343 eval board software program
 #include "tmp275.h"
+#include "ADS101x.h"
 #include "utilities.h"
 #include <math.h>
 
@@ -43,6 +44,7 @@ int main(int argc, char **argv){
 	DRV83xx_init(&SPI_addr, &write_data, &read_data, &erase_mask, &write_mask);
 	I2C_init();
 	tmp275_init();	//temperature sensor init
+	ADS101x_init();	//set up ADC 
 	e_car_init();	//set up raspberry pi pin paramemeter
 
 	uint16_t PWM_val = 0;
@@ -100,17 +102,21 @@ int main(int argc, char **argv){
 			}
 		}else{		//control by brake switch
 			//motor_coast(coast_ON);
-			motor_brake();
-//			//brake the motor when pwm is slowed down to zero
-//			if(PWM_val == 0){
-//				motor_brake();
-//			}else{
-//				motor_gentle_stop(&PWM_val, &time_count, &ramp_rate, &init_PWM_val, &Motor_DIR_val);
-//			}
+			//motor_brake();
+			//brake the motor when pwm is slowed down to zero
+			if(PWM_val == 0){
+				motor_brake();
+			}else{
+				motor_gentle_stop(&PWM_val, &time_count, &ramp_rate, &init_PWM_val, &Motor_DIR_val);
+			}
 		}
 
 		// Fault Handling	
 		while(DRV8343_FLT_val == 0){	//active low
+			motor_coast(coast_ON);
+			motor_PWM_reset();
+			PWM_val = 0;
+			time_count = 0;
 			if(DRV8343_FLT_report == 0){	// only report once for each fault condition; then wait for reset signal
 				printf("DRV8343 fault flag is active; Check Fault Status and DIAG Status Register for more details \n");
 				printf("SPI_REG_FAULT_STAT \n");
@@ -128,9 +134,6 @@ int main(int argc, char **argv){
 				++RETRY_count;
 				printf("Retry count: %d \n\n", RETRY_count);
 			}
-			motor_coast(coast_ON);
-			PWM_val = 0;
-			time_count = 0;
 			//!!!!!!!!!turn on the status warning light here!!!!!!
 			Motor_DRV_FLT_RST_val = bcm2835_gpio_lev(Motor_DRV_FLT_RST_PIN);	//read the status of driver fault reset pin
 			if(Motor_DRV_FLT_RST_val == 0){

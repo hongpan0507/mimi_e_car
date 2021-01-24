@@ -1,10 +1,13 @@
 #include "tmp275.h"
 #include <bcm2835.h>
 #include "utilities.h"
+#include "TI_utilities.h"
 #include <stdio.h>
 
 void tmp275_init(){
+	printf("------------------------------- \n");
 	printf("Initializing tmp275 configuration... \n");
+	printf("TMP275 I2C Address = %d \n", I2C1_tmp275_slave_addr);
 	bcm2835_i2c_setSlaveAddress(I2C1_tmp275_slave_addr);	//set I2C address to communicate with tmp275
 
 	char tmp275_ptr;
@@ -64,6 +67,7 @@ void tmp275_init(){
 	printf("tmp275 upper temperature \n");
 	printf("tmp275 default pointer is set to read temperature\n");
 	printf("tmp275 setup completed\n");	
+	printf("------------------------------- \n");
 }
 
 void tmp275_tmp_report(float *PCB_tmp_C, float *PCB_tmp_F, short *tmp_DAC_data){
@@ -94,7 +98,7 @@ void *tmp275_read_tmp(short *data, float *tmp){
 //	printf("Data after I2C read: %d \n", tmp275_buff[0]);
 //	printf("Data after I2C read: %d \n", tmp275_buff[1]);
 	
-	char_buff_to_short(tmp275_buff, data);
+	_2char_to_12bit(tmp275_buff, data);
 	//printf("Data after buff conversion to short: %d \n", *data);
 	data_to_tmp(data, tmp);
 	//printf("Data after temp conversion: %.1f \n", tmp);
@@ -138,18 +142,18 @@ void tmp275_write_reg(char *tmp275_ptr, char *reg_data, int reg_data_byte_len){
 	bcm2835_i2c_write(data, reg_data_byte_len+1);	// +1 to include address pointer
 }
 
-// convert char buff[2] received by I2C to short
-// each char is 8 bits, each short is 16 bits, char array cannot be greater than 2
-void char_buff_to_short(char *buff, short *data){
-	*data = 0;	// make sure the content is zero before using it because bitwise OR is senitive to it
-	*data = *data | buff[0];	//copy the most significant byte
-	*data = *data << 8; //left shift the most signficiant byte by 8 bit
-	*data = *data | buff[1];	//copy the least significant byte
-	// from DS page 16; the last 4 bit of Byte 2 is not used for temperature data--> erase it
-	// need to right shift by 4 bit to get the temperature data to the correct bit field
-	*data = *data & tmp275_tmp_reg_byte2_mask;
-	*data = *data >> tmp275_tmp_reg_byte2_shift;
-}
+//// convert char buff[2] received by I2C to short
+//// each char is 8 bits, each short is 16 bits, char array cannot be greater than 2
+//void char_buff_to_short(char *buff, short *data){
+//	*data = 0;	// make sure the content is zero before using it because bitwise OR is senitive to it
+//	*data = *data | buff[0];	//copy the most significant byte
+//	*data = *data << 8; //left shift the most signficiant byte by 8 bit
+//	*data = *data | buff[1];	//copy the least significant byte
+//	// from DS page 16; the last 4 bit of Byte 2 is not used for temperature data--> erase it
+//	// need to right shift by 4 bit to get the temperature data to the correct bit field
+//	*data = *data & tmp275_tmp_reg_byte2_mask;
+//	*data = *data >> tmp275_tmp_reg_byte2_shift;
+//}
 
 // convert short to char data[2] for writing temperature limit to the register
 // each char is 8 bits, each short is 16 bits, char array cannot be greater than 2

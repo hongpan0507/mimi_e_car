@@ -24,7 +24,7 @@
 
 #define PWM_CHANNEL0 	0
 #define PWM_CHANNEL1 	1
-#define PWM_RANGE 		1024				//full duty cycle = 1024
+#define PWM_RANGE 		512					//full duty cycle = 1024
 #define PWM_init		0.1*PWM_RANGE		// initial_PWM = initial speed
 #define PWM_max			0.5*PWM_RANGE		// max_PWM = top speed	
 #define PWM_ramp_rate   1					// 

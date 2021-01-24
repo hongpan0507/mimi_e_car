@@ -42,13 +42,14 @@ int e_car_init(){
 
 	//Set clock divider to 16
 	//Set range to 1024 in Markspace Mode
-	//PRF=(19.2MHz/CLK_divider)/1024=1171.875Hz
+	//PRF = (19.2MHz/CLK_divider/PWM Range = PWM freq in Hz
 	//PRF=(19.2MHz/16)/1024=1171.875Hz
 	//PRF=(19.2MHz/2)/1024=9375Hz
+	//PRF=(19.2MHz/2)/512=18.75kHz
 	printf("Setting PWM Parameter \n");
-	//bcm2835_pwm_set_clock(BCM2835_PWM_CLOCK_DIVIDER_2);
+	bcm2835_pwm_set_clock(BCM2835_PWM_CLOCK_DIVIDER_2);
 	//bcm2835_pwm_set_clock(BCM2835_PWM_CLOCK_DIVIDER_4);
-	bcm2835_pwm_set_clock(BCM2835_PWM_CLOCK_DIVIDER_8);
+	//bcm2835_pwm_set_clock(BCM2835_PWM_CLOCK_DIVIDER_8);
 	//bcm2835_pwm_set_clock(BCM2835_PWM_CLOCK_DIVIDER_16);
 	bcm2835_pwm_set_mode(PWM_CHANNEL0, 1, 1);
 	bcm2835_pwm_set_range(PWM_CHANNEL0, PWM_RANGE);
