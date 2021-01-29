@@ -49,8 +49,9 @@ int main(int argc, char **argv){
 	//ramp_rate was found by tuning
 	//initial value is 0.00001
 	//time_count%100000 was used
-	float ramp_rate = PWM_ramp_rate;
-	
+	float ramp_up_rate = PWM_ramp_up_abs_min;		//controlled by acce knob
+	float ramp_down_rate = PWM_ramp_down_abs_min;	//not controlled
+	extern float acce_val_read;	
 	uint16_t init_PWM_val = PWM_init;
 	
 	int pwm_data = 0;
@@ -70,7 +71,7 @@ int main(int argc, char **argv){
 	uint32_t speed_loop_count = 0;		// for reporting temperature
 	uint32_t speed_knob_report_count = 0;		// for reporting temperature
 	tmp_report_count = pow(2, 22);		// report about once every seconds 
-	speed_knob_report_count = tmp_report_count/100;	//found by trial and error 
+	speed_knob_report_count = tmp_report_count/50;	//found by trial and error 
 
 	//Only use for debugging when stop and start motor control is required
 //	char c;
@@ -96,9 +97,9 @@ int main(int argc, char **argv){
 				//printf("Motor_DIR_val: %d \n", Motor_DIR_val);
 			}
 			if(PEDAL_val == 1){		//Pedal pressed
-				motor_gentle_start(&PWM_val, &time_count, &ramp_rate, &init_PWM_val, &Motor_DIR_val);
+				motor_gentle_start(&PWM_val, &time_count, &ramp_up_rate, &init_PWM_val, &Motor_DIR_val);
 			}else if(PEDAL_val == 0){	//Pedal released
-				motor_gentle_stop(&PWM_val, &time_count, &ramp_rate, &init_PWM_val, &Motor_DIR_val);
+				motor_gentle_stop(&PWM_val, &time_count, &ramp_up_rate, &init_PWM_val, &Motor_DIR_val);
 			}
 		}else{		//control by brake switch
 			//motor_coast(coast_ON);
@@ -107,7 +108,7 @@ int main(int argc, char **argv){
 			if(PWM_val == 0){
 				motor_brake();
 			}else{
-				motor_gentle_stop(&PWM_val, &time_count, &ramp_rate, &init_PWM_val, &Motor_DIR_val);
+				motor_gentle_stop(&PWM_val, &time_count, &ramp_down_rate, &init_PWM_val, &Motor_DIR_val);
 			}
 		}
 
@@ -169,6 +170,8 @@ int main(int argc, char **argv){
 		// Reporting
 		if(speed_loop_count >	speed_knob_report_count){		// depends loop execution delay
 			speed_ctrl_knob_read();
+			acce_ctrl_knob_read();
+			ramp_up_rate = acce_val_read;
 			speed_loop_count = 0;
 		}
 		if(tmp_loop_count >	tmp_report_count){	// depends loop execution delay

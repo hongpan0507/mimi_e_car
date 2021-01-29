@@ -6,6 +6,7 @@
 #include <bcm2835.h>
 
 uint16_t PWM_val_read = 0;
+float acce_val_read = 0;
 
 int e_car_init(){
 	printf("Initializing e_car parameters...\n");
@@ -110,6 +111,11 @@ void motor_speed_ctrl_linear(uint16_t *PWM_val, float *ramp_rate, uint16_t *init
 	//ideally ramp_rate = 1 because PWM_val is integer; float number will convert to the same integer before it's big enough
 	//keep increasing PWM_time_unit if ramp_rate is not close to 1
 	*PWM_val = *ramp_rate * *time_count/PWM_time_unit + *init_PWM_val;
+//	if(*PWM_val > PWM_abs_max){
+//		*PWM_val = PWM_abs_max;
+//	}else if(*PWM_val < *init_PWM_val){
+//		*PWM_val = *init_PWM_val;
+//	}
 	//printf("PWM_val= %d \n", *PWM_val);
 }
 
@@ -228,13 +234,31 @@ void speed_ctrl_knob_read(){
 	//printf(" ADC FSR = %.3fV \n", ADS101x_para->ADC_FSR);
 	//printf("speed knob = %.3fV \n", ADS101x_para.ADC_volt_read);
 
-	PWM_val_read = (int16_t) (PWM_abs_max * ADS101x_para.ADC_volt_read / ADS101x_max_volt);
+	PWM_val_read = (int16_t) (PWM_abs_min + (PWM_abs_max-PWM_abs_min) * ADS101x_para.ADC_volt_read/ADS101x_max_volt);
 	if(PWM_val_read > PWM_abs_max){
 		PWM_val_read = PWM_abs_max;
 	}else if(PWM_val_read < PWM_abs_min){
 		PWM_val_read = PWM_abs_min;
 	}
 	//printf("PWM = %d \n", PWM_val_read);
+}
+
+void acce_ctrl_knob_read(){	//control acceleration
+	//set up I2C address
+	extern uint16_t I2C_addr;
+	I2C_addr = ADS101x_I2C_addr_EXT;
+	I2C_set_addr(&I2C_addr);
+
+	extern struct ADS101x_para_obj ADS101x_para;	//define as a global variable in ADS101x.c
+	extern uint16_t ADC_channel;
+	ADC_channel = ADS1015_MUX_SE_IN2;	//ADC channel 2 is connected to acce knob
+	ADS101x_single_volt_read(&ADS101x_para, &ADC_channel);
+	//printf(" ADC data = %d \n", ADS101x_para->ADC_data);
+	//printf(" ADC FSR = %.3fV \n", ADS101x_para->ADC_FSR);
+	//printf("acceleration knob = %.3fV \n", ADS101x_para.ADC_volt_read);
+
+	acce_val_read = PWM_ramp_up_abs_min + (PWM_ramp_up_abs_max-PWM_ramp_up_abs_min) * ADS101x_para.ADC_volt_read/ADS101x_max_volt;
+	//printf("acce_val_read = %.3f \n", acce_val_read);
 }
 
 //--------------------------------------------------------------------
