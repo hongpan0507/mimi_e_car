@@ -2,33 +2,47 @@
 // Created on 1/17/2021 by hpan
 
 #include "ADS101x.h"
+#include "comm.h"
 #include "utilities.h"
 #include "TI_utilities.h"
 #include <bcm2835.h>
 #include <stdio.h>
 
+struct ADS101x_para_obj ADS101x_para = {
+	.reg_addr_ptr = ADS101x_conv_reg_ptr	//point to ADC conversion register
+}; 
+
+uint16_t reg_val_write;
+uint16_t ADC_channel;
+
 void ADS101x_init(){
 	printf("------------------------------- \n");
 	printf("Initializing ADC parameters... \n");
-	uint16_t reg_val_write;
-	uint16_t reg_mask;
-	static struct ADS101x_para_obj ADS101x_para = {
-		.reg_addr_ptr = ADS101x_conv_reg_ptr	//point to ADC conversion register
-	}; 
+	//uint16_t reg_val_write;
+	//uint16_t ADC_channel;
+//	struct ADS101x_para_obj ADS101x_para = {
+//		.reg_addr_ptr = ADS101x_conv_reg_ptr	//point to ADC conversion register
+//	}; 
 
-	ADS101x_I2C_addr = ADS101x_I2C_addr_EXT;
-	ADS101x_set_I2C_addr(&ADS101x_I2C_addr);
+
+	printf("ADS101x I2C Address = %d \n", ADS101x_I2C_addr_EXT);
+	//ADS101x_I2C_addr = ADS101x_I2C_addr_EXT;
+	//ADS101x_set_I2C_addr(&ADS101x_I2C_addr);
+	extern uint16_t I2C_addr;
+	I2C_addr = ADS101x_I2C_addr_EXT;
+	I2C_set_addr(&I2C_addr);
 
 	printf("Setting ADC Full Scale Range \n");
 	reg_val_write = ADS101x_PGA_FSR_PM_4p096V;
-	reg_mask = ADS101x_PGA_FSR_mask;
-	ADS101x_config_reg_write(&ADS101x_para, &reg_val_write, &reg_mask);
+	ADS101x_para.reg_mask = ADS101x_PGA_FSR_mask;
+	ADS101x_config_reg_write(&ADS101x_para, &reg_val_write);
 	ADS101x_FSR_read(&ADS101x_para);
 
-	printf("Set ADC channel to 3, single ended \n");
-	reg_val_write = ADS1015_MUX_SE_IN3;
-	reg_mask = ADS1015_MUX_mask;
-	ADS101x_config_reg_write(&ADS101x_para, &reg_val_write, &reg_mask);
+	printf("Setting Sampling Data Rate to 3300SPS \n");
+	reg_val_write = ADS101x_DR_3300SPS;
+	ADS101x_para.reg_mask = ADS101x_DR_mask;
+	ADS101x_config_reg_write(&ADS101x_para, &reg_val_write);
+
 
 	//reading current config register data
 	ADS101x_para.reg_addr_ptr = ADS101x_config_reg_ptr;	//point to ADC config register
@@ -38,9 +52,13 @@ void ADS101x_init(){
 	print_as_bin(&(ADS101x_para.reg_val));
 
 	//start ADC single conversion
-	while(1){
-		//ADS101x_single_conv_read(&ADS101x_para);
-		ADC_volt_single_conv_read(&ADS101x_para);
+	printf("Reading 4 SE ADC channel: \n");
+	for(uint16_t i=0; i<4; ++i){
+		ADC_channel = ADS1015_MUX_SE_IN0 + (i<<ADS1015_MUX_bit_loc);
+		//ADC_channel = ADS1015_MUX_SE_IN3;
+		//ADS101x_single_conv_read(&ADS101x_para, &ADC_channel);
+		ADS101x_single_volt_read(&ADS101x_para, &ADC_channel);
+		printf("ADC SE Channel %d Voltage = %.3fV \n", i+1, ADS101x_para.ADC_volt_read);
 		delay(100);
 	}
 	
@@ -49,7 +67,7 @@ void ADS101x_init(){
 }
 
 void ADS101x_set_I2C_addr(enum I2C_addr *ADS101x_slave_addr){
-	printf("ADS101x I2C addr = %d \n", *ADS101x_slave_addr);
+	//printf("ADS101x I2C addr = %d \n", *ADS101x_slave_addr);
 	bcm2835_i2c_setSlaveAddress(*ADS101x_slave_addr);	//set I2C address to communicate with tmp275
 }
 
@@ -88,27 +106,27 @@ void ADS101x_config_reg_reset(struct ADS101x_para_obj *ADS101x_para){
 //reg_val = reg value to be written to config reg
 //bit_loc = the number of bit shift required to get the reg_val into the correct location of the config reg bit field
 //reg_mask = use to erase current bit field data
-void ADS101x_config_reg_write(struct ADS101x_para_obj *ADS101x_para, uint16_t *reg_val_write, uint16_t *reg_mask){
+void ADS101x_config_reg_write(struct ADS101x_para_obj *ADS101x_para, uint16_t *reg_val_write){
 	ADS101x_para->reg_addr_ptr = ADS101x_config_reg_ptr;	//point to ADC config register
 	ADS101x_read_reg(&(ADS101x_para->reg_addr_ptr), ADS101x_para->TRX_buff, ADS101x_reg_byte_len);	//read config register
 	_2char_to_16bit(ADS101x_para->TRX_buff, &(ADS101x_para->reg_val));	//convert char[2] to short for data processing
-	ADS101x_para->reg_val = ADS101x_para->reg_val & (~ *reg_mask);	//bitwise invert reg_mask to erase specific bit field data
+	ADS101x_para->reg_val = ADS101x_para->reg_val & (~ ADS101x_para->reg_mask);	//bitwise invert reg_mask to erase specific bit field data
 	ADS101x_para->reg_val = ADS101x_para->reg_val | *reg_val_write;	//bitwise invert reg_mask to erase specific bit field data
 	_16bit_to_2char(ADS101x_para->TRX_buff, &(ADS101x_para->reg_val));	//convert short back to char[2] for I2C communication
 	ADS101x_write_reg(&(ADS101x_para->reg_addr_ptr), ADS101x_para->TRX_buff, ADS101x_reg_byte_len);		//put the data back to the config register
 }
 
 
-void ADS101x_config_reg_read(struct ADS101x_para_obj *ADS101x_para, uint16_t reg_mask){
+void ADS101x_config_reg_read(struct ADS101x_para_obj *ADS101x_para){
 	ADS101x_para->reg_addr_ptr = ADS101x_config_reg_ptr;	//point to ADC config register
 	ADS101x_read_reg(&(ADS101x_para->reg_addr_ptr), ADS101x_para->TRX_buff, ADS101x_reg_byte_len);	//read config register
 	_2char_to_16bit(ADS101x_para->TRX_buff, &(ADS101x_para->reg_val));	//convert char[2] to short for data processing
-	ADS101x_para->reg_val = ADS101x_para->reg_val & reg_mask;	//erase all the bit field except the ones defined by reg_mask
+	ADS101x_para->reg_val = ADS101x_para->reg_val & ADS101x_para->reg_mask;	//erase all the bit field except the ones defined by reg_mask
 }
 
 //this function finds the full scale range based on PGA setting
 void ADS101x_FSR_read(struct ADS101x_para_obj *ADS101x_para){
-	ADS101x_config_reg_read(ADS101x_para, ADS101x_PGA_FSR_mask);
+	ADS101x_config_reg_read(ADS101x_para);
 	switch(ADS101x_para->reg_val){
 		case ADS101x_PGA_FSR_PM_6p144V:
 			ADS101x_para->ADC_FSR = 6.144; 
@@ -138,17 +156,23 @@ void ADS101x_FSR_read(struct ADS101x_para_obj *ADS101x_para){
 
 //start single conversion and read ADC data
 //read config register; OR "1" to bit 16, then put the data back to the config register
-void ADS101x_single_conv_read(struct ADS101x_para_obj *ADS101x_para){
+void ADS101x_single_conv_read(struct ADS101x_para_obj *ADS101x_para, uint16_t *ADC_channel){
 	ADS101x_para->reg_addr_ptr = ADS101x_config_reg_ptr;	//point to ADC config register
 	//read config register
 	ADS101x_read_reg(&(ADS101x_para->reg_addr_ptr), ADS101x_para->TRX_buff, ADS101x_reg_byte_len);
 	_2char_to_16bit(ADS101x_para->TRX_buff, &(ADS101x_para->reg_val));	//convert char[2] to short for data processing
-	//OR "1" to bit 16
-	ADS101x_para->reg_val = ADS101x_para->reg_val | ADS101x_single_conv;	//write 1 to the MSB	
+	//set ADC channel
+	ADS101x_para->reg_mask = ADS1015_MUX_mask;
+	ADS101x_para->reg_val = ADS101x_para->reg_val & (~ ADS101x_para->reg_mask);	//bitwise invert reg_mask to erase specific bit field data
+	ADS101x_para->reg_val = ADS101x_para->reg_val | *ADC_channel;	
+	//OR "1" to bit 16 to start a single conversion
+	ADS101x_para->reg_val = ADS101x_para->reg_val | ADS101x_single_conv;	
 	_16bit_to_2char(ADS101x_para->TRX_buff, &(ADS101x_para->reg_val));	//convert short back to char[2] for I2C communication
 	//put the data back to the config register
 	ADS101x_write_reg(&(ADS101x_para->reg_addr_ptr), ADS101x_para->TRX_buff, ADS101x_reg_byte_len);
-
+	//open loop control for now
+	//it's better to use RDY pin as feedback or use conversion ready register
+	delayMicroseconds(300);	//at 3300SPS, it takes about 300us to complete a conversion
 	//read ADC data
 	ADS101x_para->reg_addr_ptr = ADS101x_conv_reg_ptr;	//point to ADC conversion register
 	ADS101x_read_reg(&(ADS101x_para->reg_addr_ptr), ADS101x_para->TRX_buff, ADS101x_reg_byte_len);
@@ -156,10 +180,17 @@ void ADS101x_single_conv_read(struct ADS101x_para_obj *ADS101x_para){
 	signed_12bit_to_signed_16bit(&(ADS101x_para->ADC_data));
 }
 
-void ADC_volt_single_conv_read(struct ADS101x_para_obj *ADS101x_para){
-	ADS101x_single_conv_read(ADS101x_para);
-	printf("ADC reading: %d \n", ADS101x_para->ADC_data);
-	ADS101x_para->ADC_volt_read = ADS101x_para->ADC_FSR/2048 * ADS101x_para->ADC_data;
-	printf("ADC Voltage = %.3fV \n", ADS101x_para->ADC_volt_read);
+void ADS101x_single_volt_read(struct ADS101x_para_obj *ADS101x_para, uint16_t *ADC_channel){
+	ADS101x_single_conv_read(ADS101x_para, ADC_channel);
+	//convert to voltage
+	//printf("ADC reading: %d \n", ADS101x_para->ADC_data);
+	ADS101x_para->ADC_volt_read = ADS101x_para->ADC_FSR/2048 * ADS101x_para->ADC_data;	//DS page 22
+	//printf("ADC Voltage = %.3fV \n", ADS101x_para->ADC_volt_read);
+}
+
+// choose ADC channel for ADS1015
+void ADS1015_set_ADC_channel(struct ADS101x_para_obj *ADS101x_para, uint16_t *ADC_channel){
+	ADS101x_para->reg_mask = ADS1015_MUX_mask;
+	ADS101x_config_reg_write(ADS101x_para, ADC_channel);
 }
 

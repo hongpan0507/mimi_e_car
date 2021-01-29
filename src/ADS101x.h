@@ -12,8 +12,6 @@
 enum I2C_addr{
 	ADS101x_I2C_addr_EXT = 0b01001000,	//address for ADC connected to external interface	
 	ADS101x_I2C_addr_INT = 0b01001001,	//address for ADC connected to internal measurement nodes
-	//ADS101x_I2C_addr_EXT = 0b01001011	fake address for test, this is tmp275 addr
-
 } ADS101x_I2C_addr;
 
 enum reg_addr_ptr{	//DS page 23
@@ -32,6 +30,7 @@ enum ADS101x_config_reg_OS{	//DS page 24
 
 enum ADS1015_config_reg_MUX{	//DS page 24
 	ADS1015_MUX_bit_loc = 12,
+	ADS1015_ADC_channel_count = 4,
 	ADS1015_MUX_mask = 0b111 << ADS1015_MUX_bit_loc,
 	ADS1015_MUX_DIFF_P_IN0_N_IN1 = 0b000 << ADS1015_MUX_bit_loc,	//default
 	ADS1015_MUX_DIFF_P_IN0_N_IN3 = 0b001 << ADS1015_MUX_bit_loc,
@@ -106,10 +105,11 @@ enum ADS101x_config_reg_COMP_QUE{
 struct ADS101x_para_obj{
 	char reg_addr_ptr; 
 	char TRX_buff[ADS101x_reg_byte_len];						//temporary data storage for TX and RX data
+	uint16_t reg_mask;
 	uint16_t reg_val;
 	uint16_t ADC_data;
 	float ADC_FSR;
-	float ADC_volt_read;
+	float ADC_volt_read;		//total 4 channels for ADS1015
 };
 
 void ADS101x_init();
@@ -118,10 +118,11 @@ void ADS101x_set_reg_addr_ptr(char *reg_addr_ptr);
 void ADS101x_read_reg(char *reg_addr_ptr, char *read_data, uint8_t reg_data_byte_len);
 void ADS101x_write_reg(char *reg_addr_ptr, char *write_data, uint8_t reg_data_byte_len);
 void ADS101x_config_reg_reset(struct ADS101x_para_obj *ADS101x_para);
-void ADS101x_config_reg_write(struct ADS101x_para_obj *ADS101x_para, uint16_t *reg_val_write, uint16_t *reg_mask);
-void ADS101x_config_reg_read(struct ADS101x_para_obj *ADS101x_para, uint16_t reg_mask);
+void ADS101x_config_reg_write(struct ADS101x_para_obj *ADS101x_para, uint16_t *reg_val_write);
+void ADS101x_config_reg_read(struct ADS101x_para_obj *ADS101x_para);
 void ADS101x_FSR_read(struct ADS101x_para_obj *ADS101x_para);
-void ADS101x_single_conv_read(struct ADS101x_para_obj *ADS101x_para);
-void ADC_volt_single_conv_read(struct ADS101x_para_obj *ADS101x_para);
+void ADS101x_single_conv_read(struct ADS101x_para_obj *ADS101x_para, uint16_t *ADC_channel);
+void ADS101x_single_volt_read(struct ADS101x_para_obj *ADS101x_para, uint16_t *ADC_channel);
+void ADS1015_set_ADC_channel(struct ADS101x_para_obj *ADS101x_para, uint16_t *ADC_channel);
 
 #endif

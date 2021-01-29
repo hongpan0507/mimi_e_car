@@ -1,21 +1,26 @@
 #include "tmp275.h"
+#include "comm.h"
 #include <bcm2835.h>
 #include "utilities.h"
 #include "TI_utilities.h"
 #include <stdio.h>
 
+short tmp_DAC_data = 0; 
+float PCB_tmp_C = 0;		// PCB temperature data read from TMP275 closest to the MOSFETs
+float PCB_tmp_F = 0;		// PCB temperature data read from TMP275 closest to the MOSFETs
+
 void tmp275_init(){
 	printf("------------------------------- \n");
 	printf("Initializing tmp275 configuration... \n");
 	printf("TMP275 I2C Address = %d \n", I2C1_tmp275_slave_addr);
-	bcm2835_i2c_setSlaveAddress(I2C1_tmp275_slave_addr);	//set I2C address to communicate with tmp275
+	extern uint16_t I2C_addr;
+	I2C_addr = I2C1_tmp275_slave_addr;
+	I2C_set_addr(&I2C_addr);
+	//bcm2835_i2c_setSlaveAddress(I2C1_tmp275_slave_addr);	//set I2C address to communicate with tmp275
 
 	char tmp275_ptr;
 	char tmp275_reg_data;
-	short tmp_DAC_data = 0; 
 	float tmp_limit = 0;
-	float PCB_tmp_C = 0;		// PCB temperature data read from TMP275 closest to the MOSFETs
-	float PCB_tmp_F = 0;		// PCB temperature data read from TMP275 closest to the MOSFETs
 
 	printf("before writing config register \n");
 	tmp275_ptr = tmp275_config_reg;
@@ -73,8 +78,8 @@ void tmp275_init(){
 void tmp275_tmp_report(float *PCB_tmp_C, float *PCB_tmp_F, short *tmp_DAC_data){
 	tmp275_read_tmp(tmp_DAC_data, PCB_tmp_C);
 	C_to_F(PCB_tmp_C, PCB_tmp_F);
-	printf("PCB Temperature = %.1fC ", *PCB_tmp_C);
-	printf("(%.1fF) \n", *PCB_tmp_F);
+	//printf("PCB Temperature = %.1fC ", *PCB_tmp_C);
+	//printf("(%.1fF) \n", *PCB_tmp_F);
 }
 
 // Datasheet Page 8

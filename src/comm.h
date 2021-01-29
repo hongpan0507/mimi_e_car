@@ -1,4 +1,8 @@
+#ifndef COMM_H_
+#define COMM_H_
+
 #include <stdbool.h>
+#include <stdint.h>
 
 // initialize communication protocal
 // provides communication functions
@@ -22,3 +26,7 @@ int DRV8343_SPI_read(uint16_t *addr, uint16_t *read_data, bool verbose);
 int DRV8343_SPI_write(uint16_t *addr, uint16_t *write_data, uint16_t *read_data, bool verbose);
 
 int I2C_init();
+void I2C_set_addr(uint16_t *I2C_addr);
+
+
+#endif

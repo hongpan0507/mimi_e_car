@@ -17,6 +17,8 @@ SPI
 #include "tmp275.h"
 #include <bcm2835.h>
 
+uint16_t I2C_addr;
+
 int DRV8343_SPI_init(){
 	printf("------------------------------- \n");
 	printf("Initialzing SPI communication...\n");
@@ -105,7 +107,8 @@ int I2C_init(){
 	}
 	int clk_div = BCM2835_I2C_CLOCK_DIVIDER_626;
 	bcm2835_i2c_setClockDivider(clk_div);		//400kHz; found in the docu, not calculated
-	bcm2835_i2c_setSlaveAddress(I2C1_tmp275_slave_addr);	//default slave address
+	I2C_addr = I2C1_tmp275_slave_addr;
+	I2C_set_addr(&I2C_addr);
 	printf("I2C Clock Speed: %02X kHz \n", clk_div);
 	printf("Default Slave Address is set to read TMP275 \n");
 	printf("Need to set slave address before data transfer \n");
@@ -113,3 +116,6 @@ int I2C_init(){
 	printf("------------------------------- \n");
 }
 
+void I2C_set_addr(uint16_t *I2C_addr){
+	bcm2835_i2c_setSlaveAddress(*I2C_addr);	//default slave address
+}

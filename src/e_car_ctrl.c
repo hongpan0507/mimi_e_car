@@ -1,9 +1,15 @@
 #include <stdio.h>
 #include "e_car_ctrl.h"
+#include "tmp275.h"
+#include "comm.h"
 #include <bcm2835.h>
 
 int e_car_init(){
 	printf("Initializing e_car parameters...\n");
+	//set up I2C communication
+	I2C_init();
+	tmp275_init();	//temperature sensor init
+	ADS101x_init();	//set up ADC 
 	
 	//Set GPIO pin as output
 	bcm2835_gpio_fsel(PWM_INHC, BCM2835_GPIO_FSEL_OUTP);	//Use PWM_INHC as GPIO to control cooling fan
@@ -60,6 +66,12 @@ int e_car_init(){
 	motor_PWM_reset();
 	motor_coast(coast_ON);
 	power_MOSFET_cooling_fan_CTRL(fan_OFF);
+	
+//	while(1){
+//		speed_ctrl_knob_read();
+//		power_MOSFET_TMP_report();
+//		delay(100);
+//	}
 
 	printf("e_car Initialization Completed!\n");
 }
@@ -135,7 +147,7 @@ void motor_coast(uint8_t CTRL){
 
 void motor_gentle_start(uint16_t *PWM_val, uint32_t *time_count, float *ramp_rate, uint16_t *init_PWM_val, uint8_t *Motor_DIR_val){
 	motor_coast(coast_OFF);
-	if(*PWM_val < PWM_max){	//keep increase PWM until reaching max
+	if(*PWM_val < PWM_abs_max){	//keep increase PWM until reaching max
 		//time_count++;		//allow time to count up
  		*time_count = *time_count + 1;		//allow time to count up
 		//only update PWM value after some time has passed
@@ -175,6 +187,34 @@ void power_MOSFET_cooling_fan_CTRL(uint8_t CTRL){
 	} else if(CTRL == 1){	//turn on fan
 		bcm2835_gpio_write(PWM_INHC, HIGH);	//turn on fan
 	}
+}
+
+void power_MOSFET_TMP_report(){
+	extern uint16_t I2C_addr;
+	I2C_addr = I2C1_tmp275_slave_addr;
+	I2C_set_addr(&I2C_addr);
+
+	extern float PCB_tmp_C;
+	extern float PCB_tmp_F;
+	extern short tmp_DAC_data;
+	tmp275_tmp_report(&PCB_tmp_C, &PCB_tmp_F, &tmp_DAC_data);
+	//printf("PCB Temperature = %.1fC ", PCB_tmp_C);
+	//printf("(%.1fF) \n", PCB_tmp_F);
+}
+
+void speed_ctrl_knob_read(){
+	//set up I2C address
+	extern uint16_t I2C_addr;
+	I2C_addr = ADS101x_I2C_addr_EXT;
+	I2C_set_addr(&I2C_addr);
+
+	extern struct ADS101x_para_obj ADS101x_para;	//define as a global variable in ADS101x.c
+	extern uint16_t ADC_channel;
+	ADC_channel = ADS1015_MUX_SE_IN3;	//ADC channel 3 is connected to speed knob
+	ADS101x_single_volt_read(&ADS101x_para, &ADC_channel);
+	//printf(" ADC data = %d \n", ADS101x_para->ADC_data);
+	//printf(" ADC FSR = %.3fV \n", ADS101x_para->ADC_FSR);
+	//printf("speed knob = %.3fV \n", ADS101x_para.ADC_volt_read);
 }
 
 //--------------------------------------------------------------------

@@ -31,9 +31,9 @@ int main(int argc, char **argv){
 
 	short PCB_tmp_warm_high_limit = 35;	//if PCB temperature goes over this number; turn on the fan
 	short PCB_tmp_warm_low_limit = 32;	//if PCB temperature goes over this number; turn on the fan
-	short tmp_DAC_data = 0; 
-	float PCB_tmp_C = 0;		// PCB temperature data read from TMP275 closest to the MOSFETs
-	float PCB_tmp_F = 0;		// PCB temperature data read from TMP275 closest to the MOSFETs
+	//short tmp_DAC_data = 0; 
+	extern float PCB_tmp_C;		// PCB temperature data read from TMP275 closest to the MOSFETs
+	//float PCB_tmp_F = 0;		// PCB temperature data read from TMP275 closest to the MOSFETs
 
 	// the order of the initialization routine matters because bcm2835 SPI library use
 	//pin24/GPIO8 and pin26/GPIO7 as SS
@@ -42,9 +42,6 @@ int main(int argc, char **argv){
 	// e_car_inint() needs to be placed after DRV8343_SPI_init();
 	DRV8343_SPI_init();
 	DRV83xx_init(&SPI_addr, &write_data, &read_data, &erase_mask, &write_mask);
-	I2C_init();
-	tmp275_init();	//temperature sensor init
-	ADS101x_init();	//set up ADC 
 	e_car_init();	//set up raspberry pi pin paramemeter
 
 	uint16_t PWM_val = 0;
@@ -54,7 +51,7 @@ int main(int argc, char **argv){
 	//time_count%100000 was used
 	float ramp_rate = PWM_ramp_rate;
 	
-	uint16_t init_PWM_val = PWM_init;
+	uint16_t init_PWM_val = PWM_abs_min;
 	
 	int pwm_data = 0;
 	uint8_t Motor_brake_val = 0;
@@ -157,7 +154,8 @@ int main(int argc, char **argv){
 			while(over_tmp_FLT == 1){	// as long as PCB is overheating
 				printf("PCB overheating!!! \n");
 				motor_coast(coast_ON);		//slow down to stop
-				tmp275_tmp_report(&PCB_tmp_C, &PCB_tmp_F, &tmp_DAC_data);
+				//power_MOSFET_TMP_report(&PCB_tmp_C, &PCB_tmp_F, &tmp_DAC_data);
+				power_MOSFET_TMP_report();
 				delay(1000);	// report once a second
 				over_tmp_FLT = bcm2835_gpio_lev(Power_MOSFET_over_tmp_alert);	//read TMP275 temperature; active high
 			}
@@ -168,7 +166,7 @@ int main(int argc, char **argv){
 		// Reporting
 		if(loop_count >	report_count){	// depends loop execution delay
 			//printf("loop_count=%d \n", loop_count);
-			//tmp275_tmp_report(&PCB_tmp_C, &PCB_tmp_F, &tmp_DAC_data);
+			power_MOSFET_TMP_report();
 			//PCB warming up to the upper limit; cool it down
 			if(PCB_tmp_C > PCB_tmp_warm_high_limit){
 				power_MOSFET_cooling_fan_CTRL(fan_ON);	
