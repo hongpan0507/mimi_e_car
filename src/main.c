@@ -51,7 +51,7 @@ int main(int argc, char **argv){
 	//time_count%100000 was used
 	float ramp_rate = PWM_ramp_rate;
 	
-	uint16_t init_PWM_val = PWM_abs_min;
+	uint16_t init_PWM_val = PWM_init;
 	
 	int pwm_data = 0;
 	uint8_t Motor_brake_val = 0;
@@ -65,10 +65,13 @@ int main(int argc, char **argv){
 	int RETRY_count = 0;
 	uint8_t over_tmp_FLT = 0;
 	
-	uint32_t loop_count = 0;		// for reporting temperature
-	uint32_t report_count = 0;		// for reporting temperature
-	report_count = pow(2, 22);		// report about once every seconds 
-	
+	uint32_t tmp_loop_count = 0;		// for reporting temperature
+	uint32_t tmp_report_count = 0;		// for reporting temperature
+	uint32_t speed_loop_count = 0;		// for reporting temperature
+	uint32_t speed_knob_report_count = 0;		// for reporting temperature
+	tmp_report_count = pow(2, 22);		// report about once every seconds 
+	speed_knob_report_count = tmp_report_count/100;	//found by trial and error 
+
 	//Only use for debugging when stop and start motor control is required
 //	char c;
 //	printf("Enter any character to continue:");
@@ -164,8 +167,12 @@ int main(int argc, char **argv){
 		}
 
 		// Reporting
-		if(loop_count >	report_count){	// depends loop execution delay
-			//printf("loop_count=%d \n", loop_count);
+		if(speed_loop_count >	speed_knob_report_count){		// depends loop execution delay
+			speed_ctrl_knob_read();
+			speed_loop_count = 0;
+		}
+		if(tmp_loop_count >	tmp_report_count){	// depends loop execution delay
+			//printf("tmp_loop_count=%d \n", tmp_loop_count);
 			power_MOSFET_TMP_report();
 			//PCB warming up to the upper limit; cool it down
 			if(PCB_tmp_C > PCB_tmp_warm_high_limit){
@@ -173,9 +180,10 @@ int main(int argc, char **argv){
 			} else if(PCB_tmp_C < PCB_tmp_warm_low_limit){	// turn off 
 				power_MOSFET_cooling_fan_CTRL(fan_OFF);	
 			}
-			loop_count = 0;
+			tmp_loop_count = 0;
 		}
-		loop_count++;
+		++tmp_loop_count;
+		++speed_loop_count;
 	}
 
 	bcm2835_close();

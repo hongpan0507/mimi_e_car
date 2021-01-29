@@ -8,6 +8,7 @@
 
 #define ADS101x_reg_byte_len		2	//all of the registers are 2 byte long except register address pointer
 #define ADS101x_TX_buff_byte_len	3	//1 byte for addr ptr, 2 byte for write data
+#define ADS101x_max_volt			3.3	//ADC max volt = ADC supply volt
 
 enum I2C_addr{
 	ADS101x_I2C_addr_EXT = 0b01001000,	//address for ADC connected to external interface	

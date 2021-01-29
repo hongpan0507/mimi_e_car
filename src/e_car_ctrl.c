@@ -2,7 +2,10 @@
 #include "e_car_ctrl.h"
 #include "tmp275.h"
 #include "comm.h"
+#include "ADS101x.h"
 #include <bcm2835.h>
+
+uint16_t PWM_val_read = 0;
 
 int e_car_init(){
 	printf("Initializing e_car parameters...\n");
@@ -197,7 +200,7 @@ void power_MOSFET_TMP_report(){
 	extern float PCB_tmp_C;
 	extern float PCB_tmp_F;
 	extern short tmp_DAC_data;
-	tmp275_tmp_report(&PCB_tmp_C, &PCB_tmp_F, &tmp_DAC_data);
+	tmp275_tmp_report(&PCB_tmp_C, &PCB_tmp_F, &tmp_DAC_data, 0);
 	//printf("PCB Temperature = %.1fC ", PCB_tmp_C);
 	//printf("(%.1fF) \n", PCB_tmp_F);
 }
@@ -215,6 +218,14 @@ void speed_ctrl_knob_read(){
 	//printf(" ADC data = %d \n", ADS101x_para->ADC_data);
 	//printf(" ADC FSR = %.3fV \n", ADS101x_para->ADC_FSR);
 	//printf("speed knob = %.3fV \n", ADS101x_para.ADC_volt_read);
+
+	PWM_val_read = (int16_t) (PWM_abs_max * ADS101x_para.ADC_volt_read / ADS101x_max_volt);
+	if(PWM_val_read > PWM_abs_max){
+		PWM_val_read = PWM_abs_max;
+	}else if(PWM_val_read < PWM_abs_min){
+		PWM_val_read = PWM_abs_min;
+	}
+	//printf("PWM = %d \n", PWM_val_read);
 }
 
 //--------------------------------------------------------------------

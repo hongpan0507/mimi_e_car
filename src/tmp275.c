@@ -66,20 +66,20 @@ void tmp275_init(){
 	//point to temperature register before reading temperature
 	tmp275_ptr = tmp275_tmp_data_reg;
 	tmp275_write_ptr(&tmp275_ptr);	
-	tmp275_tmp_report(&PCB_tmp_C, &PCB_tmp_F, &tmp_DAC_data);
+	tmp275_tmp_report(&PCB_tmp_C, &PCB_tmp_F, &tmp_DAC_data, 1);
 
-	printf("tmp275 temperature precision: \n");
-	printf("tmp275 upper temperature \n");
 	printf("tmp275 default pointer is set to read temperature\n");
 	printf("tmp275 setup completed\n");	
 	printf("------------------------------- \n");
 }
 
-void tmp275_tmp_report(float *PCB_tmp_C, float *PCB_tmp_F, short *tmp_DAC_data){
+void tmp275_tmp_report(float *PCB_tmp_C, float *PCB_tmp_F, short *tmp_DAC_data, bool verbose){
 	tmp275_read_tmp(tmp_DAC_data, PCB_tmp_C);
 	C_to_F(PCB_tmp_C, PCB_tmp_F);
-	//printf("PCB Temperature = %.1fC ", *PCB_tmp_C);
-	//printf("(%.1fF) \n", *PCB_tmp_F);
+	if(verbose == true){
+		printf("PCB Temperature = %.1fC ", *PCB_tmp_C);
+		printf("(%.1fF) \n", *PCB_tmp_F);
+	}
 }
 
 // Datasheet Page 8

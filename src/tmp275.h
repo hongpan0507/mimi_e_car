@@ -1,4 +1,6 @@
 // TI TMP275 temperature sensor
+#include <stdbool.h>
+
 #define tmp275_tmp_low_limit			47.0		// in C
 #define tmp275_tmp_high_limit			50.0		// in C
 #define I2C1_tmp275_slave_addr		0b01001011
@@ -46,7 +48,7 @@
 #define tmp275_resolution_12bit		0b01100000
 
 void tmp275_init();
-void tmp275_tmp_report(float *PCB_tmp_C, float *PCB_tmp_F, short *tmp_DAC_data);
+void tmp275_tmp_report(float *PCB_tmp_C, float *PCB_tmp_F, short *tmp_DAC_data, bool verbose);
 void *tmp275_read_tmp(short *data, float *tmp);
 void tmp275_set_tmp_limit(char *tmp275_ptr, float *tmp_limit);
 void tmp275_write_ptr(char *tmp275_ptr);
