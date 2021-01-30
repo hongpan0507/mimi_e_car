@@ -15,7 +15,7 @@ struct ADS101x_para_obj ADS101x_para = {
 uint16_t reg_val_write;
 uint16_t ADC_channel;
 
-void ADS101x_init(){
+void ADS101x_init(uint16_t I2C_addr){
 	printf("------------------------------- \n");
 	printf("Initializing ADC parameters... \n");
 	//uint16_t reg_val_write;
@@ -25,11 +25,9 @@ void ADS101x_init(){
 //	}; 
 
 
-	printf("ADS101x I2C Address = %d \n", ADS101x_I2C_addr_EXT);
+	printf("ADS101x I2C Address = %d \n", I2C_addr);
 	//ADS101x_I2C_addr = ADS101x_I2C_addr_EXT;
 	//ADS101x_set_I2C_addr(&ADS101x_I2C_addr);
-	extern uint16_t I2C_addr;
-	I2C_addr = ADS101x_I2C_addr_EXT;
 	I2C_set_addr(&I2C_addr);
 
 	printf("Setting ADC Full Scale Range \n");

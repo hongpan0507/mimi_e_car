@@ -59,3 +59,4 @@ void power_MOSFET_cooling_fan_CTRL(uint8_t CTRL);
 void power_MOSFET_TMP_report();
 void speed_ctrl_knob_read();
 void acce_ctrl_knob_read();	//control acceleration
+void batt_volt_read();

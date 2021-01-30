@@ -113,7 +113,7 @@ struct ADS101x_para_obj{
 	float ADC_volt_read;		//total 4 channels for ADS1015
 };
 
-void ADS101x_init();
+void ADS101x_init(uint16_t I2C_addr);
 void ADS101x_set_I2C_addr(enum I2C_addr *ADS101x_slave_addr);
 void ADS101x_set_reg_addr_ptr(char *reg_addr_ptr);
 void ADS101x_read_reg(char *reg_addr_ptr, char *read_data, uint8_t reg_data_byte_len);

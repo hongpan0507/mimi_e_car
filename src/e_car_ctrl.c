@@ -7,14 +7,17 @@
 
 uint16_t PWM_val_read = 0;
 float acce_val_read = 0;
+float batt_volt = 0;
 
 int e_car_init(){
 	printf("Initializing e_car parameters...\n");
 	//set up I2C communication
-	I2C_init();
+	I2C_init();		
 	tmp275_init();	//temperature sensor init
-	ADS101x_init();	//set up ADC 
-	
+	ADS101x_init(ADS101x_I2C_addr_EXT);		//ADC connecting to external sensor
+	ADS101x_init(ADS101x_I2C_addr_INT);		//ADC connecting to internal PCB nodes 
+	batt_volt_read();
+
 	//Set GPIO pin as output
 	bcm2835_gpio_fsel(PWM_INHC, BCM2835_GPIO_FSEL_OUTP);	//Use PWM_INHC as GPIO to control cooling fan
 	bcm2835_gpio_fsel(DRV8343_EN, BCM2835_GPIO_FSEL_OUTP);
@@ -204,7 +207,7 @@ void motor_quick_stop(uint16_t *PWM_val, uint32_t *time_count, float *ramp_rate,
 	if(*time_count == 0){
 		PWM_val_hist = *PWM_val;	//record the start value of PWM_val
 	}
- 	if(*PWM_val > 0){
+ 	if(*PWM_val > 0){	//need to get PWM down to zero before applying brake; otherwise, motor driver will detect faults
  		*time_count = *time_count + 1;		//allow time to count up
  		//only update PWM value after some time has passed
  		//highly dependant on how fast the program is going through the loop
@@ -282,6 +285,21 @@ void acce_ctrl_knob_read(){	//control acceleration
 
 	acce_val_read = PWM_ramp_up_abs_min + (PWM_ramp_up_abs_max-PWM_ramp_up_abs_min) * ADS101x_para.ADC_volt_read/ADS101x_max_volt;
 	//printf("acce_val_read = %.3f \n", acce_val_read);
+}
+
+void batt_volt_read(){
+	extern uint16_t I2C_addr;
+	I2C_addr = ADS101x_I2C_addr_INT;
+	I2C_set_addr(&I2C_addr);
+
+	extern struct ADS101x_para_obj ADS101x_para;	//define as a global variable in ADS101x.c
+	extern uint16_t ADC_channel;
+	ADC_channel = ADS1015_MUX_SE_IN2;	//ADC channel 2 is connected to battery voltage divider
+	ADS101x_single_volt_read(&ADS101x_para, &ADC_channel);
+	
+	//the battery is connected to a 3.9kohms and 1.1kohms resistor divider before it goes into ADC
+	batt_volt = ADS101x_para.ADC_volt_read * (3.9+1.1)/1.1;
+	printf("Battery Voltage = %.3fV \n", batt_volt);
 }
 
 //--------------------------------------------------------------------
