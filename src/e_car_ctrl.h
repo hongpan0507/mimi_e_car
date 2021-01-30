@@ -27,16 +27,16 @@
 #define PWM_CHANNEL1 			1
 #define PWM_RANGE 				512					//full duty cycle = 1024
 #define PWM_init				0.1*PWM_RANGE		// initial_PWM = initial speed
-#define PWM_abs_min				0.4*PWM_RANGE		// initial_PWM = initial speed
+#define PWM_abs_min				0.3*PWM_RANGE		// initial_PWM = initial speed
 #define PWM_abs_max				0.8*PWM_RANGE		// max_PWM = top speed	
 //#define PWM_ramp_rate   		1					// 
 #define PWM_ramp_up_abs_min	    0.2					// 
 #define PWM_ramp_up_abs_max     1.8					// 
-#define PWM_ramp_down_abs_min   1					// 
+#define PWM_ramp_down_abs_min 	1  					// 
 //for driving
-//#define PWM_time_unit	2000				// control how fast PWM value is updated; found by trial and error; highly dependant on loop execution time
+#define PWM_time_unit	2000				// control how fast PWM value is updated; found by trial and error; highly dependant on loop execution time
 // for testing
-#define PWM_time_unit	5000				// control how fast PWM value is updated; found by trial and error; highly dependant on loop execution time
+//#define PWM_time_unit	5000				// control how fast PWM value is updated; found by trial and error; highly dependant on loop execution time
 #define coast_ON		1
 #define coast_OFF		0
 #define fan_ON	1
@@ -54,6 +54,7 @@ void motor_brake();	//hard stop when E-stop button is pushed
 void motor_coast(uint8_t CTRL);
 void motor_gentle_start(uint16_t *PWM_val, uint32_t *time_count, float *ramp_rate, uint16_t *init_PWM_val, uint8_t *Motor_DIR_val);
 void motor_gentle_stop(uint16_t *PWM_val, uint32_t *time_count, float *ramp_rate, uint16_t *init_PWM_val, uint8_t *Motor_DIR_val);
+void motor_quick_stop(uint16_t *PWM_val, uint32_t *time_count, float *ramp_rate, uint16_t *init_PWM_val, uint8_t *Motor_DIR_val);
 void power_MOSFET_cooling_fan_CTRL(uint8_t CTRL);
 void power_MOSFET_TMP_report();
 void speed_ctrl_knob_read();

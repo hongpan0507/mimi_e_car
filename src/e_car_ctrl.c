@@ -199,6 +199,29 @@ void motor_gentle_stop(uint16_t *PWM_val, uint32_t *time_count, float *ramp_rate
  	}
 }
 
+void motor_quick_stop(uint16_t *PWM_val, uint32_t *time_count, float *ramp_rate, uint16_t *init_PWM_val, uint8_t *Motor_DIR_val){
+	static uint16_t PWM_val_hist = 0;
+	if(*time_count == 0){
+		PWM_val_hist = *PWM_val;	//record the start value of PWM_val
+	}
+ 	if(*PWM_val > 0){
+ 		*time_count = *time_count + 1;		//allow time to count up
+ 		//only update PWM value after some time has passed
+ 		//highly dependant on how fast the program is going through the loop
+ 		//ideally timer interrupt should be used here
+ 		if(*time_count%PWM_time_unit){	
+			*PWM_val = PWM_val_hist - *ramp_rate * *time_count/PWM_time_unit;
+ 			//printf("PWM_val: %d\n", PWM_val);
+ 		}
+		motor_move(PWM_val, Motor_DIR_val);
+ 	}else{
+ 		motor_coast(coast_ON);
+		motor_PWM_reset();
+ 		*PWM_val = 0;
+ 		*time_count = 0;
+ 	}
+}
+
 void power_MOSFET_cooling_fan_CTRL(uint8_t CTRL){
 	if(CTRL == 0){	
 		bcm2835_gpio_write(PWM_INHC, LOW);	//turn off fan

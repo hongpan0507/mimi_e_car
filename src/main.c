@@ -45,7 +45,8 @@ int main(int argc, char **argv){
 	e_car_init();	//set up raspberry pi pin paramemeter
 
 	uint16_t PWM_val = 0;
-	uint32_t time_count = 0;		// for PWM control 
+	uint32_t time_count = 0;			// for PWM control 
+	uint32_t Brake_time_count = 0;		// for PWM control 
 	//ramp_rate was found by tuning
 	//initial value is 0.00001
 	//time_count%100000 was used
@@ -85,11 +86,17 @@ int main(int argc, char **argv){
 		//Sensor reading
 		DRV8343_FLT_val = bcm2835_gpio_lev(DRV8343_FLT);	//read DRV8343 general Fault status
 		over_tmp_FLT = bcm2835_gpio_lev(Power_MOSFET_over_tmp_alert);	//read TMP275 temperature; active high
+		if(speed_loop_count >	speed_knob_report_count){		// depends loop execution delay
+			speed_ctrl_knob_read();
+			acce_ctrl_knob_read();
+			ramp_up_rate = acce_val_read;
+			speed_loop_count = 0;
+		}
 
 		//Motor control
 		PEDAL_val = bcm2835_gpio_lev(PEDAL_PIN); //reading Pedal state
 		Motor_brake_val = bcm2835_gpio_lev(Motor_BRAKE_PIN); //reading Pedal state
-		if(Motor_brake_val == 1){	//control by brake switch
+		if(Motor_brake_val == 1){	//control by brake switch; motor brake is off
 			if(PWM_val == 0){	//only allows change of direction when PWM is zero
 				//Motor_DIR_val: 1 = forward; 0 = backward
 				Motor_DIR_val = bcm2835_gpio_lev(Motor_DIR_PIN_IN);	//reading switch state
@@ -101,6 +108,7 @@ int main(int argc, char **argv){
 			}else if(PEDAL_val == 0){	//Pedal released
 				motor_gentle_stop(&PWM_val, &time_count, &ramp_up_rate, &init_PWM_val, &Motor_DIR_val);
 			}
+			Brake_time_count = 0;	//in case when brake switch is flipped before PWM_val reaches zero
 		}else{		//control by brake switch
 			//motor_coast(coast_ON);
 			//motor_brake();
@@ -108,7 +116,8 @@ int main(int argc, char **argv){
 			if(PWM_val == 0){
 				motor_brake();
 			}else{
-				motor_gentle_stop(&PWM_val, &time_count, &ramp_down_rate, &init_PWM_val, &Motor_DIR_val);
+				//motor_gentle_stop(&PWM_val, &time_count, &ramp_up_rate, &init_PWM_val, &Motor_DIR_val);
+				motor_quick_stop(&PWM_val, &Brake_time_count, &ramp_down_rate, &init_PWM_val, &Motor_DIR_val);
 			}
 		}
 
@@ -168,12 +177,6 @@ int main(int argc, char **argv){
 		}
 
 		// Reporting
-		if(speed_loop_count >	speed_knob_report_count){		// depends loop execution delay
-			speed_ctrl_knob_read();
-			acce_ctrl_knob_read();
-			ramp_up_rate = acce_val_read;
-			speed_loop_count = 0;
-		}
 		if(tmp_loop_count >	tmp_report_count){	// depends loop execution delay
 			//printf("tmp_loop_count=%d \n", tmp_loop_count);
 			power_MOSFET_TMP_report();
